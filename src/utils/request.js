@@ -17,8 +17,8 @@ const service = axios.create({
   baseURL: import.meta.env.VITE_APP_BASE_API || '/api',
   timeout: 15000,
   headers: {
-    'Content-Type': 'application/json;charset=UTF-8'
-  }
+    'Content-Type': 'application/json;charset=UTF-8',
+  },
 })
 
 // 请求拦截器
@@ -39,7 +39,7 @@ service.interceptors.request.use(
     NProgress.done()
     console.error('Request error:', error)
     return Promise.reject(error)
-  }
+  },
 )
 
 // 响应拦截器
@@ -107,7 +107,7 @@ service.interceptors.response.use(
     }
 
     return Promise.reject(error)
-  }
+  },
 )
 
 export default service

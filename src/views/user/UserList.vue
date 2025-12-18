@@ -150,7 +150,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getUserList, createUser, updateUser, deleteUser, resetPassword } from '@/api/user'
+import { getUserPage, register, updateUser, deleteUser, resetPassword } from '@/api/user'
 import { required, usernameRule, passwordRule, phoneRule, emailRule } from '@/utils/validate'
 
 const loading = ref(false)
@@ -210,9 +210,10 @@ const loadUserList = async () => {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize
     }
-    const res = await getUserList(params)
-    tableData.value = res.data.list
-    pagination.total = res.data.total
+    // 使用分页接口，返回 { pageNum, pageSize, total, list }
+    const res = await getUserPage(params)
+    tableData.value = res.data.list || []
+    pagination.total = res.data.total || 0
   } catch (error) {
     console.error('Load user list failed:', error)
   } finally {
@@ -307,10 +308,35 @@ const handleSubmit = async () => {
     submitLoading.value = true
 
     if (userForm.id) {
-      await updateUser(userForm.id, userForm)
+      // 修正：updateUser 只接收 data
+      await updateUser({
+        id: userForm.id,
+        realName: userForm.realName,
+        gender: userForm.gender,
+        phone: userForm.phone,
+        email: userForm.email,
+        avatar: userForm.avatar,
+        status: userForm.status
+      })
       ElMessage.success('更新成功')
     } else {
-      await createUser(userForm)
+      // 新增用户改为调用注册接口，按 RegisterDTO 映射字段
+      const payload = {
+        username: userForm.username,
+        password: userForm.password,
+        realName: userForm.realName,
+        gender: userForm.gender,
+        phone: userForm.phone,
+        email: userForm.email
+      }
+      // 可选：根据所选角色设置学号/工号，便于后端识别角色
+      if (userForm.roleCode === 'TEACHER') {
+        payload.teacherNo = payload.phone || `T${Date.now()}`
+      } else if (userForm.roleCode === 'STUDENT') {
+        payload.studentNo = payload.phone || `S${Date.now()}`
+      }
+
+      await register(payload)
       ElMessage.success('创建成功')
     }
 

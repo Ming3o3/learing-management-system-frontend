@@ -96,7 +96,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
-import { getCourseList, deleteCourse, enrollCourse } from '@/api/course'
+import { getCoursePage, deleteCourse, enrollCourse } from '@/api/course'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -132,9 +132,10 @@ const loadCourseList = async () => {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize
     }
-    const res = await getCourseList(params)
-    tableData.value = res.data.list
-    pagination.total = res.data.total
+    const res = await getCoursePage(params)
+    const data = res?.data
+    tableData.value = data?.list || []
+    pagination.total = data?.total || 0
   } catch (error) {
     console.error('Load course list failed:', error)
   } finally {

@@ -29,6 +29,19 @@ export function getCourseList(params) {
 }
 
 /**
+ * 分页查询课程
+ * @param {Object} params 查询条件，包含 pageNum/pageSize
+ * @returns {Promise}
+ */
+export function getCoursePage(params) {
+  return request({
+    url: '/course/page',
+    method: 'get',
+    params
+  })
+}
+
+/**
  * 根据教师ID查询课程
  * @param {Number} teacherId 教师ID
  * @returns {Promise}
