@@ -7,7 +7,7 @@
           <el-input v-model="searchForm.courseName" placeholder="请输入课程名称" clearable />
         </el-form-item>
         <el-form-item label="课程状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
+          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable style="width: 120px">
             <el-option label="草稿" :value="0" />
             <el-option label="已发布" :value="1" />
             <el-option label="已归档" :value="2" />

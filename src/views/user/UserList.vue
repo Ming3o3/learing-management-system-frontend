@@ -10,7 +10,7 @@
           <el-input v-model="searchForm.realName" placeholder="请输入真实姓名" clearable />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
+          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable style="width: 120px">
             <el-option label="正常" :value="1" />
             <el-option label="禁用" :value="0" />
           </el-select>
@@ -56,11 +56,15 @@
         </el-table-column>
         <el-table-column prop="phone" label="手机号" width="130" />
         <el-table-column prop="email" label="邮箱" min-width="180" />
-        <el-table-column prop="roleCode" label="角色" width="100">
+        <el-table-column prop="roles" label="角色" width="100">
           <template #default="{ row }">
-            <el-tag v-if="row.roleCode === 'ADMIN'" type="danger">管理员</el-tag>
-            <el-tag v-else-if="row.roleCode === 'TEACHER'" type="warning">教师</el-tag>
-            <el-tag v-else type="info">学生</el-tag>
+            <template v-if="row.roles && row.roles.length > 0">
+              <el-tag v-if="row.roles.includes('ADMIN')" type="danger">管理员</el-tag>
+              <el-tag v-else-if="row.roles.includes('TEACHER')" type="warning">教师</el-tag>
+              <el-tag v-else-if="row.roles.includes('STUDENT')" type="info">学生</el-tag>
+              <el-tag v-else type="info">{{ row.roles[0] }}</el-tag>
+            </template>
+            <el-tag v-else type="info">未分配</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="80">
@@ -293,7 +297,7 @@ const handleResetPassword = async (row) => {
       type: 'warning'
     })
 
-    await resetPassword(row.id)
+    await resetPassword(row.id, '123456')
     ElMessage.success('密码已重置为：123456')
   } catch (error) {
     if (error !== 'cancel') {
@@ -327,13 +331,8 @@ const handleSubmit = async () => {
         realName: userForm.realName,
         gender: userForm.gender,
         phone: userForm.phone,
-        email: userForm.email
-      }
-      // 可选：根据所选角色设置学号/工号，便于后端识别角色
-      if (userForm.roleCode === 'TEACHER') {
-        payload.teacherNo = payload.phone || `T${Date.now()}`
-      } else if (userForm.roleCode === 'STUDENT') {
-        payload.studentNo = payload.phone || `S${Date.now()}`
+        email: userForm.email,
+        userType: userForm.roleCode === 'ADMIN' ? 1 : userForm.roleCode === 'TEACHER' ? 2 : 3
       }
 
       await register(payload)
