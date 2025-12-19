@@ -105,35 +105,63 @@ const routes = [
         meta: { title: '提交作业', roles: ['STUDENT'] }
       },
       // 考试管理
+      // 试卷管理
       {
-        path: 'exams',
-        name: 'ExamList',
-        component: () => import('@/views/exam/ExamList.vue'),
-        meta: { title: '考试列表' }
+        path: 'exam/papers',
+        name: 'PaperList',
+        component: () => import('@/views/exam/PaperList.vue'),
+        meta: { title: '试卷列表' }
       },
       {
-        path: 'exams/create',
-        name: 'ExamCreate',
-        component: () => import('@/views/exam/ExamForm.vue'),
-        meta: { title: '创建试卷', roles: ['ADMIN', 'TEACHER'] }
+        path: 'exam/paper/add',
+        name: 'PaperAdd',
+        component: () => import('@/views/exam/PaperForm.vue'),
+        meta: { title: '新增试卷', roles: ['ADMIN', 'TEACHER'] }
       },
       {
-        path: 'exams/:id',
-        name: 'ExamDetail',
-        component: () => import('@/views/exam/ExamDetail.vue'),
-        meta: { title: '考试详情' }
+        path: 'exam/paper/edit/:id',
+        name: 'PaperEdit',
+        component: () => import('@/views/exam/PaperForm.vue'),
+        meta: { title: '编辑试卷', roles: ['ADMIN', 'TEACHER'] }
       },
       {
-        path: 'exams/:id/take',
-        name: 'TakeExam',
-        component: () => import('@/views/exam/TakeExam.vue'),
-        meta: { title: '开始考试', roles: ['STUDENT'] }
+        path: 'exam/paper/detail/:id',
+        name: 'PaperDetail',
+        component: () => import('@/views/exam/PaperDetail.vue'),
+        meta: { title: '试卷详情' }
+      },
+      // 试题管理
+      {
+        path: 'exam/questions',
+        name: 'QuestionList',
+        component: () => import('@/views/exam/QuestionList.vue'),
+        meta: { title: '试题管理', roles: ['ADMIN', 'TEACHER'] }
       },
       {
-        path: 'questions',
-        name: 'QuestionBank',
-        component: () => import('@/views/exam/QuestionBank.vue'),
-        meta: { title: '题库管理', roles: ['ADMIN', 'TEACHER'] }
+        path: 'exam/question/add',
+        name: 'QuestionAdd',
+        component: () => import('@/views/exam/QuestionForm.vue'),
+        meta: { title: '新增试题', roles: ['ADMIN', 'TEACHER'] }
+      },
+      {
+        path: 'exam/question/edit/:id',
+        name: 'QuestionEdit',
+        component: () => import('@/views/exam/QuestionForm.vue'),
+        meta: { title: '编辑试题', roles: ['ADMIN', 'TEACHER'] }
+      },
+      // 参加考试
+      {
+        path: 'exam/take/:id',
+        name: 'StudentExam',
+        component: () => import('@/views/exam/StudentExam.vue'),
+        meta: { title: '参加考试', roles: ['STUDENT'] }
+      },
+      // 考试记录
+      {
+        path: 'exam/records',
+        name: 'ExamRecordList',
+        component: () => import('@/views/exam/ExamRecordList.vue'),
+        meta: { title: '考试记录' }
       },
       // 成绩管理
       {
