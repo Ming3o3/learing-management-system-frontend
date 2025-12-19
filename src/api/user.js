@@ -79,6 +79,17 @@ export function getUserPage(params) {
 }
 
 /**
+ * 获取教师列表
+ * @returns {Promise}
+ */
+export function getTeachers() {
+  return request({
+    url: '/user/teachers',
+    method: 'get'
+  })
+}
+
+/**
  * 新增用户
  * @param {Object} data 用户信息
  * @returns {Promise}

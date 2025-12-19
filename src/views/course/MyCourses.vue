@@ -26,7 +26,7 @@
               </p>
               <p>
                 <el-icon><Calendar /></el-icon>
-                {{ course.startDate }} ~ {{ course.endDate }}
+                {{ course.startTime }} ~ {{ course.endTime }}
               </p>
               <p>
                 <el-icon><TrophyBase /></el-icon>

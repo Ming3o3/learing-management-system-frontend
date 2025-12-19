@@ -68,14 +68,15 @@ export function createCourse(data) {
 
 /**
  * 更新课程
+ * @param {Number} id 课程ID
  * @param {Object} data 课程信息
  * @returns {Promise}
  */
-export function updateCourse(data) {
+export function updateCourse(id, data) {
   return request({
     url: '/course',
     method: 'put',
-    data
+    data: { ...data, id }
   })
 }
 

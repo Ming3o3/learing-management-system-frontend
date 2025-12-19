@@ -16,9 +16,8 @@
       <el-descriptions :column="2" border>
         <el-descriptions-item label="授课教师">{{ course.teacherName }}</el-descriptions-item>
         <el-descriptions-item label="学分">{{ course.credit }}</el-descriptions-item>
-        <el-descriptions-item label="人数上限">{{ course.maxStudents }}</el-descriptions-item>
         <el-descriptions-item label="已报名人数">
-          <el-tag :type="course.enrolledCount >= course.maxStudents ? 'danger' : 'success'">
+          <el-tag type="success">
             {{ course.enrolledCount || 0 }}
           </el-tag>
         </el-descriptions-item>
@@ -175,7 +174,7 @@ const handleDeleteResource = async (row) => {
     await ElMessageBox.confirm(`确定删除资源"${row.fileName}"吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     ElMessage.success('删除成功')
@@ -192,7 +191,7 @@ const handleRemoveStudent = async (row) => {
     await ElMessageBox.confirm(`确定移除学生"${row.studentName}"吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     ElMessage.success('移除成功')

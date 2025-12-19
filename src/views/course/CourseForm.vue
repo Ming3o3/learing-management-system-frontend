@@ -36,10 +36,6 @@
           <el-input-number v-model="courseForm.credit" :min="0" :max="10" :precision="1" />
         </el-form-item>
 
-        <el-form-item label="人数上限" prop="maxStudents">
-          <el-input-number v-model="courseForm.maxStudents" :min="1" :max="500" />
-        </el-form-item>
-
         <el-form-item label="开课时间" prop="startDate">
           <el-date-picker
             v-model="courseForm.startDate"
@@ -93,7 +89,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getCourseById, createCourse, updateCourse } from '@/api/course'
-import { getUserList } from '@/api/user'
+import { getTeachers } from '@/api/user'
 import { required } from '@/utils/validate'
 
 const router = useRouter()
@@ -110,11 +106,10 @@ const courseForm = reactive({
   description: '',
   teacherId: null,
   credit: 2,
-  maxStudents: 50,
   startDate: '',
   endDate: '',
   content: '',
-  status: 0
+  status: 0,
 })
 
 const validateEndDate = (rule, value, callback) => {
@@ -130,10 +125,9 @@ const formRules = {
   description: [required],
   teacherId: [required],
   credit: [required],
-  maxStudents: [required],
   startDate: [required],
   endDate: [required, { validator: validateEndDate, trigger: 'blur' }],
-  status: [required]
+  status: [required],
 }
 
 onMounted(async () => {
@@ -145,8 +139,8 @@ onMounted(async () => {
 
 const loadTeachers = async () => {
   try {
-    const res = await getUserList({ roleCode: 'TEACHER', pageNum: 1, pageSize: 1000 })
-    teachers.value = res.data.list
+    const res = await getTeachers()
+    teachers.value = res.data
   } catch (error) {
     console.error('Load teachers failed:', error)
   }
@@ -155,7 +149,12 @@ const loadTeachers = async () => {
 const loadCourseDetail = async () => {
   try {
     const res = await getCourseById(route.params.id)
-    Object.assign(courseForm, res.data)
+    const data = res.data
+    Object.assign(courseForm, {
+      ...data,
+      startDate: data.startTime,
+      endDate: data.endTime
+    })
   } catch (error) {
     console.error('Load course detail failed:', error)
     ElMessage.error('加载课程详情失败')
@@ -168,11 +167,17 @@ const handleSubmit = async () => {
     await courseFormRef.value.validate()
     submitLoading.value = true
 
+    const submitData = {
+      ...courseForm,
+      startTime: courseForm.startDate,
+      endTime: courseForm.endDate
+    }
+
     if (isEdit.value) {
-      await updateCourse(route.params.id, courseForm)
+      await updateCourse(route.params.id, submitData)
       ElMessage.success('更新成功')
     } else {
-      await createCourse(courseForm)
+      await createCourse(submitData)
       ElMessage.success('创建成功')
     }
 
