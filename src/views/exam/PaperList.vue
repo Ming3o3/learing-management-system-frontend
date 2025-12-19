@@ -198,9 +198,9 @@ import { getCourseList } from '@/api/course'
 const router = useRouter()
 const userStore = useUserStore()
 
-const isTeacher = computed(() => userStore.userInfo?.roleId === 2)
-const isAdmin = computed(() => userStore.userInfo?.roleId === 1)
-const isStudent = computed(() => userStore.userInfo?.roleId === 3)
+const isTeacher = computed(() => userStore.isTeacher)
+const isAdmin = computed(() => userStore.isAdmin)
+const isStudent = computed(() => userStore.isStudent)
 
 const loading = ref(false)
 const courseList = ref([])

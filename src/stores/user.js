@@ -92,9 +92,9 @@ export const useUserStore = defineStore('user', {
         this.userInfo = res.data
         local.set(USER_INFO_KEY, res.data)
 
-        // TODO: 从userInfo中提取roles
-        // 这里需要根据后端实际返回的数据结构调整
+        // 从userInfo中提取roles
         this.roles = res.data.roles || []
+        console.log('用户角色:', this.roles)
 
         return res
       } catch (error) {
