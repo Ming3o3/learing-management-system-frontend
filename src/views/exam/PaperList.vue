@@ -190,7 +190,8 @@ import {
   getPaperPage,
   deletePaper,
   publishPaper,
-  addQuestionsToPaper
+  addQuestionsToPaper,
+  getQuestionByPaper
 } from '@/api/exam'
 import { getQuestionByCourse } from '@/api/exam'
 import { getCourseList } from '@/api/course'
@@ -367,13 +368,18 @@ const handleDelete = async (row) => {
 /**
  * 组卷
  */
-const handleCompose = (row) => {
+const handleCompose = async (row) => {
   composeForm.paperId = row.id
   composeForm.courseId = row.courseId
   composeForm.questionType = null
   composeForm.selectedQuestions = []
   composeDialogVisible.value = true
-  loadQuestions()
+
+  // 加载可选试题
+  await loadQuestions()
+
+  // 加载已选试题
+  await loadSelectedQuestions(row.id)
 }
 
 /**
@@ -410,6 +416,22 @@ const loadQuestions = async () => {
   } catch (error) {
     ElMessage.error('加载试题列表失败')
     console.error(error)
+  }
+}
+
+/**
+ * 加载已选试题
+ */
+const loadSelectedQuestions = async (paperId) => {
+  try {
+    const res = await getQuestionByPaper(paperId)
+    if (res.code === 200) {
+      const selectedIds = (res.data || []).map((q) => q.id)
+      composeForm.selectedQuestions = selectedIds
+      console.log('已选试题ID:', selectedIds)
+    }
+  } catch (error) {
+    console.error('加载已选试题失败:', error)
   }
 }
 
