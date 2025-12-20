@@ -102,7 +102,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
-import { getCourseById } from '@/api/course'
+import { getCourseById, getCourseStudents, removeStudentFromCourse } from '@/api/course'
 import { formatFileSize } from '@/utils'
 
 const router = useRouter()
@@ -149,8 +149,12 @@ const loadResources = async () => {
 }
 
 const loadStudents = async () => {
-  // TODO: 调用API加载学生列表
-  students.value = []
+  try {
+    const res = await getCourseStudents(route.params.id)
+    students.value = res.data || []
+  } catch (error) {
+    console.error('Load students failed:', error)
+  }
 }
 
 const handleEdit = () => {
@@ -194,11 +198,14 @@ const handleRemoveStudent = async (row) => {
       type: 'warning',
     })
 
+    await removeStudentFromCourse(route.params.id, row.studentId)
     ElMessage.success('移除成功')
     loadStudents()
+    loadCourseDetail() // 重新加载课程详情以更新报名人数
   } catch (error) {
     if (error !== 'cancel') {
       console.error('Remove student failed:', error)
+      ElMessage.error('移除失败')
     }
   }
 }

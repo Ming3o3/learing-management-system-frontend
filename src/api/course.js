@@ -189,3 +189,28 @@ export function getMyEnrollments() {
     method: 'get'
   })
 }
+
+/**
+ * 查询课程的学生列表
+ * @param {Number} courseId 课程ID
+ * @returns {Promise}
+ */
+export function getCourseStudents(courseId) {
+  return request({
+    url: `/course/${courseId}/students`,
+    method: 'get'
+  })
+}
+
+/**
+ * 移除学生选课
+ * @param {Number} courseId 课程ID
+ * @param {Number} studentId 学生ID
+ * @returns {Promise}
+ */
+export function removeStudentFromCourse(courseId, studentId) {
+  return request({
+    url: `/course/${courseId}/students/${studentId}`,
+    method: 'delete'
+  })
+}
