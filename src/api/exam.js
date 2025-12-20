@@ -93,7 +93,8 @@ export function publishPaper(id) {
 }
 
 /**
- * 为试卷添加试�? * @param {Object} data {paperId, questionIds}
+ * 为试卷添加试题
+ * @param {Object} data {paperId, questionIds}
  * @returns {Promise}
  */
 export function addQuestionsToPaper(data) {
@@ -105,7 +106,20 @@ export function addQuestionsToPaper(data) {
 }
 
 /**
- * 从试卷移除试�? * @param {Number} paperId 试卷ID
+ * 清空试卷所有试题
+ * @param {Number} paperId 试卷ID
+ * @returns {Promise}
+ */
+export function clearPaperQuestions(paperId) {
+  return request({
+    url: `/exam/paper/${paperId}/questions`,
+    method: 'delete'
+  })
+}
+
+/**
+ * 从试卷移除试题
+ * @param {Number} paperId 试卷ID
  * @param {Number} questionId 试题ID
  * @returns {Promise}
  */

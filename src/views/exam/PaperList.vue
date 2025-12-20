@@ -191,6 +191,7 @@ import {
   deletePaper,
   publishPaper,
   addQuestionsToPaper,
+  clearPaperQuestions,
   getQuestionByPaper
 } from '@/api/exam'
 import { getQuestionByCourse } from '@/api/exam'
@@ -445,6 +446,10 @@ const handleComposeSubmit = async () => {
   }
 
   try {
+    // 先清空试卷原有试题，避免重复
+    await clearPaperQuestions(composeForm.paperId)
+
+    // 再添加新选择的试题
     const res = await addQuestionsToPaper({
       paperId: composeForm.paperId,
       questionIds: composeForm.selectedQuestions
