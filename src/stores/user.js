@@ -10,11 +10,14 @@ const TOKEN_KEY = 'token'
 const USER_INFO_KEY = 'userInfo'
 
 export const useUserStore = defineStore('user', {
-  state: () => ({
-    token: local.get(TOKEN_KEY) || '',
-    userInfo: local.get(USER_INFO_KEY) || null,
-    roles: []
-  }),
+  state: () => {
+    const userInfo = local.get(USER_INFO_KEY)
+    return {
+      token: local.get(TOKEN_KEY) || '',
+      userInfo: userInfo || null,
+      roles: userInfo?.roles || []
+    }
+  },
 
   getters: {
     /**
