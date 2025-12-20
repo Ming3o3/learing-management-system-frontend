@@ -6,7 +6,7 @@
         <el-form-item label="课程名称">
           <el-input v-model="searchForm.courseName" placeholder="请输入课程名称" clearable />
         </el-form-item>
-        <el-form-item label="课程状态">
+        <el-form-item v-if="isTeacher || isAdmin" label="课程状态">
           <el-select
             v-model="searchForm.status"
             placeholder="请选择状态"
@@ -113,7 +113,7 @@ const loading = ref(false)
 
 const searchForm = reactive({
   courseName: '',
-  status: null,
+  status: isStudent.value ? 1 : null, // 学生默认只显示已发布的课程
 })
 
 const pagination = reactive({
@@ -155,7 +155,7 @@ const handleSearch = () => {
 const handleReset = () => {
   Object.assign(searchForm, {
     courseName: '',
-    status: null,
+    status: isStudent.value ? 1 : null, // 学生重置时仍然只显示已发布的课程
   })
   handleSearch()
 }

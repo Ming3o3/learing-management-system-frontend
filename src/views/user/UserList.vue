@@ -249,7 +249,18 @@ const handleAdd = () => {
 }
 
 const handleEdit = (row) => {
-  Object.assign(userForm, row)
+  Object.assign(userForm, {
+    id: row.id,
+    username: row.username,
+    realName: row.realName,
+    gender: row.gender,
+    phone: row.phone,
+    email: row.email,
+    avatar: row.avatar,
+    status: row.status,
+    // 从 roles 数组中提取角色代码
+    roleCode: row.roles && row.roles.length > 0 ? row.roles[0] : 'STUDENT'
+  })
   dialogVisible.value = true
 }
 
@@ -312,7 +323,7 @@ const handleSubmit = async () => {
     submitLoading.value = true
 
     if (userForm.id) {
-      // 修正：updateUser 只接收 data
+      // 编辑用户：传递完整信息包括角色
       await updateUser({
         id: userForm.id,
         realName: userForm.realName,
@@ -320,7 +331,8 @@ const handleSubmit = async () => {
         phone: userForm.phone,
         email: userForm.email,
         avatar: userForm.avatar,
-        status: userForm.status
+        status: userForm.status,
+        roleCode: userForm.roleCode // 添加角色信息
       })
       ElMessage.success('更新成功')
     } else {
