@@ -63,9 +63,9 @@
     <el-card>
       <el-table v-loading="loading" :data="tableData" border stripe>
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="paperName" label="试卷名称" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="courseName" label="课程名称" width="150" show-overflow-tooltip />
-        <el-table-column prop="teacherName" label="创建教师" width="120" />
+        <el-table-column prop="paperName" label="试卷名称" width="140" show-overflow-tooltip />
+        <el-table-column prop="courseName" label="课程名称" width="120" show-overflow-tooltip />
+        <el-table-column prop="teacherName" label="创建教师" width="100" />
         <el-table-column prop="totalScore" label="总分" width="80" />
         <el-table-column prop="duration" label="时长(分钟)" width="100" />
         <el-table-column prop="questionCount" label="题目数" width="90">

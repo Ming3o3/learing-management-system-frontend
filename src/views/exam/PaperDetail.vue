@@ -38,34 +38,36 @@
         </el-descriptions-item>
       </el-descriptions>
 
-      <!-- 试题列表 -->
-      <el-divider content-position="left">试题列表</el-divider>
+      <!-- 试题列表 - 仅教师和管理员可见 -->
+      <template v-if="isTeacher || isAdmin">
+        <el-divider content-position="left">试题列表</el-divider>
 
-      <el-table :data="questionList" border style="margin-top: 20px">
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column prop="title" label="题目" min-width="300" show-overflow-tooltip />
-        <el-table-column prop="questionTypeDesc" label="题型" width="100" />
-        <el-table-column prop="difficultyDesc" label="难度" width="100">
-          <template #default="{ row }">
-            <el-tag v-if="row.difficulty === 1" type="success">简单</el-tag>
-            <el-tag v-else-if="row.difficulty === 2" type="warning">中等</el-tag>
-            <el-tag v-else type="danger">困难</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="score" label="分值" width="80" />
-        <el-table-column label="操作" width="120" v-if="isTeacher || isAdmin">
-          <template #default="{ row }">
-            <el-button
-              type="danger"
-              size="small"
-              @click="handleRemoveQuestion(row)"
-              :disabled="paperDetail.status !== 0"
-            >
-              移除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+        <el-table :data="questionList" border style="margin-top: 20px">
+          <el-table-column type="index" label="序号" width="60" />
+          <el-table-column prop="title" label="题目" min-width="300" show-overflow-tooltip />
+          <el-table-column prop="questionTypeDesc" label="题型" width="100" />
+          <el-table-column prop="difficultyDesc" label="难度" width="100">
+            <template #default="{ row }">
+              <el-tag v-if="row.difficulty === 1" type="success">简单</el-tag>
+              <el-tag v-else-if="row.difficulty === 2" type="warning">中等</el-tag>
+              <el-tag v-else type="danger">困难</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="score" label="分值" width="80" />
+          <el-table-column label="操作" width="120">
+            <template #default="{ row }">
+              <el-button
+                type="danger"
+                size="small"
+                @click="handleRemoveQuestion(row)"
+                :disabled="paperDetail.status !== 0"
+              >
+                移除
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </template>
     </el-card>
   </div>
 </template>

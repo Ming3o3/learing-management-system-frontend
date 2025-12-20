@@ -21,8 +21,8 @@
             {{ course.enrolledCount || 0 }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="开课时间">{{ course.startDate }}</el-descriptions-item>
-        <el-descriptions-item label="结课时间">{{ course.endDate }}</el-descriptions-item>
+        <el-descriptions-item label="开课时间">{{ course.startTime }}</el-descriptions-item>
+        <el-descriptions-item label="结课时间">{{ course.endTime }}</el-descriptions-item>
         <el-descriptions-item label="课程状态">
           <el-tag v-if="course.status === 0" type="info">草稿</el-tag>
           <el-tag v-else-if="course.status === 1" type="success">已发布</el-tag>
