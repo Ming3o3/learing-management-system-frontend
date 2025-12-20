@@ -16,8 +16,8 @@
         <el-descriptions-item label="手机号">{{ userInfo.phone }}</el-descriptions-item>
         <el-descriptions-item label="邮箱">{{ userInfo.email }}</el-descriptions-item>
         <el-descriptions-item label="角色">
-          <el-tag v-if="userInfo.roleCode === 'ADMIN'" type="danger">管理员</el-tag>
-          <el-tag v-else-if="userInfo.roleCode === 'TEACHER'" type="warning">教师</el-tag>
+          <el-tag v-if="userInfo.roles?.includes('ADMIN')" type="danger">管理员</el-tag>
+          <el-tag v-else-if="userInfo.roles?.includes('TEACHER')" type="warning">教师</el-tag>
           <el-tag v-else type="info">学生</el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="状态">
