@@ -109,7 +109,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getScoreList, exportScores } from '@/api/score'
-import { getMyCourses } from '@/api/course'
+import { getMyEnrollments } from '@/api/course'
 
 const router = useRouter()
 const loading = ref(false)
@@ -143,7 +143,7 @@ onMounted(async () => {
 
 const loadCourses = async () => {
   try {
-    const res = await getMyCourses()
+    const res = await getMyEnrollments()
     courses.value = res.data
   } catch (error) {
     console.error('Load courses failed:', error)

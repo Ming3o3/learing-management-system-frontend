@@ -67,7 +67,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getHomeworkById, createHomework, updateHomework } from '@/api/homework'
-import { getMyCourses } from '@/api/course'
+import { getMyEnrollments } from '@/api/course'
 import { required } from '@/utils/validate'
 import UploadFile from '@/components/UploadFile.vue'
 
@@ -104,7 +104,7 @@ onMounted(async () => {
 
 const loadCourses = async () => {
   try {
-    const res = await getMyCourses()
+    const res = await getMyEnrollments()
     courses.value = res.data
   } catch (error) {
     console.error('Load courses failed:', error)

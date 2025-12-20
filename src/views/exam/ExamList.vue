@@ -70,7 +70,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getExamList } from '@/api/exam'
-import { getMyCourses } from '@/api/course'
+import { getMyEnrollments } from '@/api/course'
 
 const router = useRouter()
 const loading = ref(false)
@@ -95,7 +95,7 @@ onMounted(async () => {
 
 const loadMyCourses = async () => {
   try {
-    const res = await getMyCourses()
+    const res = await getMyEnrollments()
     myCourses.value = res.data
   } catch (error) {
     console.error('Load courses failed:', error)

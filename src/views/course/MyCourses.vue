@@ -1,6 +1,6 @@
 <template>
   <div class="my-courses">
-    <el-card>
+    <el-card v-loading="loading">
       <template #header>
         <div class="card-header">
           <span>我的课程</span>
@@ -61,10 +61,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getMyCourses } from '@/api/course'
+import { ElMessage } from 'element-plus'
+import { getMyEnrollments } from '@/api/course'
 
 const router = useRouter()
 const courses = ref([])
+const loading = ref(false)
 
 onMounted(() => {
   loadMyCourses()
@@ -72,10 +74,14 @@ onMounted(() => {
 
 const loadMyCourses = async () => {
   try {
-    const res = await getMyCourses()
-    courses.value = res.data
+    loading.value = true
+    const res = await getMyEnrollments()
+    courses.value = res.data || []
   } catch (error) {
     console.error('Load my courses failed:', error)
+    ElMessage.error('加载课程列表失败')
+  } finally {
+    loading.value = false
   }
 }
 
