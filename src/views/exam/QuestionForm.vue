@@ -75,22 +75,34 @@
             :label="`选项${option.key}`"
             :prop="`options.${option.key}`"
           >
-            <el-input
-              v-model="option.value"
-              placeholder="请输入选项内容"
-              maxlength="200"
-              show-word-limit
-            >
-              <template #append>
+            <div class="option-input-wrapper">
+              <el-input
+                v-model="option.value"
+                placeholder="请输入选项内容"
+                maxlength="200"
+                show-word-limit
+              />
+              <div class="option-actions">
                 <el-button
                   v-if="index === singleChoiceOptions.length - 1 && index < 9"
+                  type="success"
+                  size="small"
+                  :icon="Plus"
                   @click="addOption"
                 >
-                  添加选项
+                  添加
                 </el-button>
-                <el-button v-if="index > 3" @click="removeOption(index)">删除</el-button>
-              </template>
-            </el-input>
+                <el-button
+                  v-if="index > 3"
+                  type="danger"
+                  size="small"
+                  :icon="Delete"
+                  @click="removeOption(index)"
+                >
+                  删除
+                </el-button>
+              </div>
+            </div>
           </el-form-item>
           <el-form-item label="正确答案" prop="answer">
             <el-radio-group v-model="formData.answer">
@@ -112,22 +124,34 @@
             :key="index"
             :label="`选项${option.key}`"
           >
-            <el-input
-              v-model="option.value"
-              placeholder="请输入选项内容"
-              maxlength="200"
-              show-word-limit
-            >
-              <template #append>
+            <div class="option-input-wrapper">
+              <el-input
+                v-model="option.value"
+                placeholder="请输入选项内容"
+                maxlength="200"
+                show-word-limit
+              />
+              <div class="option-actions">
                 <el-button
                   v-if="index === multipleChoiceOptions.length - 1 && index < 9"
+                  type="success"
+                  size="small"
+                  :icon="Plus"
                   @click="addOption"
                 >
-                  添加选项
+                  添加
                 </el-button>
-                <el-button v-if="index > 3" @click="removeOption(index)">删除</el-button>
-              </template>
-            </el-input>
+                <el-button
+                  v-if="index > 3"
+                  type="danger"
+                  size="small"
+                  :icon="Delete"
+                  @click="removeOption(index)"
+                >
+                  删除
+                </el-button>
+              </div>
+            </div>
           </el-form-item>
           <el-form-item label="正确答案" prop="answer">
             <el-checkbox-group v-model="multipleAnswers">
@@ -194,6 +218,7 @@
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Plus, Delete } from '@element-plus/icons-vue'
 import { getCourseList } from '@/api/course'
 import { createQuestion, updateQuestion, getQuestionById } from '@/api/exam'
 
@@ -405,5 +430,26 @@ const handleCancel = () => {
 <style scoped>
 .question-form {
   padding: 20px;
+}
+
+.option-input-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.option-input-wrapper :deep(.el-input) {
+  flex: 1;
+}
+
+.option-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.option-actions .el-button {
+  margin: 0;
+  min-width: 80px;
 }
 </style>
