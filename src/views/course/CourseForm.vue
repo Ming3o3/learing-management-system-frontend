@@ -22,7 +22,12 @@
         </el-form-item>
 
         <el-form-item label="授课教师" prop="teacherId">
-          <el-select v-model="courseForm.teacherId" placeholder="请选择授课教师" filterable>
+          <el-select
+            v-model="courseForm.teacherId"
+            placeholder="请选择授课教师"
+            filterable
+            :disabled="isTeacher"
+          >
             <el-option
               v-for="teacher in teachers"
               :key="teacher.id"
@@ -30,6 +35,9 @@
               :value="teacher.id"
             />
           </el-select>
+          <span v-if="isTeacher" style="margin-left: 10px; color: #909399; font-size: 12px">
+            授课教师默认为本人
+          </span>
         </el-form-item>
 
         <el-form-item label="学分" prop="credit">
@@ -88,18 +96,21 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useUserStore } from '@/stores/user'
 import { getCourseById, createCourse, updateCourse } from '@/api/course'
 import { getTeachers } from '@/api/user'
 import { required } from '@/utils/validate'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 
 const courseFormRef = ref(null)
 const submitLoading = ref(false)
 const teachers = ref([])
 
 const isEdit = computed(() => !!route.params.id)
+const isTeacher = computed(() => userStore.isTeacher)
 
 const courseForm = reactive({
   courseName: '',
@@ -141,6 +152,14 @@ const loadTeachers = async () => {
   try {
     const res = await getTeachers()
     teachers.value = res.data
+
+    // 如果是教师角色且不是编辑模式，默认设置为当前用户
+    if (isTeacher.value && !isEdit.value) {
+      const currentUser = userStore.userInfo
+      if (currentUser && currentUser.id) {
+        courseForm.teacherId = currentUser.id
+      }
+    }
   } catch (error) {
     console.error('Load teachers failed:', error)
   }
