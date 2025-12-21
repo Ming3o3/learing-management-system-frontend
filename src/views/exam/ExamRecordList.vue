@@ -173,9 +173,58 @@
           </el-descriptions-item>
         </el-descriptions>
 
-        <!-- 这里可以展示答题详情,包括每道题的答案和得分 -->
+        <!-- 答题详情列表 -->
         <el-divider>答题详情</el-divider>
-        <p style="text-align: center; color: #909399">详细答题内容需要根据后端返回数据展示</p>
+        <div v-if="recordDetail.answers && recordDetail.answers.length > 0">
+          <div
+            v-for="(answer, index) in recordDetail.answers"
+            :key="answer.id"
+            class="answer-item"
+          >
+            <el-card shadow="hover" style="margin-bottom: 15px">
+              <template #header>
+                <div style="display: flex; justify-content: space-between; align-items: center">
+                  <span>
+                    <el-tag size="small">第{{ index + 1 }}题</el-tag>
+                    <el-tag type="info" size="small" style="margin-left: 10px">
+                      {{ getQuestionTypeText(answer.questionType) }}
+                    </el-tag>
+                    <el-tag type="warning" size="small" style="margin-left: 10px">
+                      {{ answer.questionScore }}分
+                    </el-tag>
+                  </span>
+                  <el-tag
+                    :type="answer.score === answer.questionScore ? 'success' : (answer.score > 0 ? 'warning' : 'danger')"
+                    size="small"
+                  >
+                    得分: {{ answer.score || 0 }}
+                  </el-tag>
+                </div>
+              </template>
+
+              <div class="question-content">
+                <p><strong>题目:</strong> {{ answer.questionContent }}</p>
+
+                <el-descriptions :column="1" border style="margin-top: 10px">
+                  <el-descriptions-item label="学生答案">
+                    <span :style="{ color: answer.isCorrect === 1 ? '#67c23a' : '#f56c6c' }">
+                      {{ answer.studentAnswer || '未作答' }}
+                    </span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="正确答案">
+                    <span style="color: #67c23a">{{ answer.correctAnswer }}</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="判定结果" v-if="answer.questionType <= 3">
+                    <el-tag v-if="answer.isCorrect === 1" type="success" size="small">正确</el-tag>
+                    <el-tag v-else-if="answer.isCorrect === 0" type="danger" size="small">错误</el-tag>
+                    <el-tag v-else type="info" size="small">待批改</el-tag>
+                  </el-descriptions-item>
+                </el-descriptions>
+              </div>
+            </el-card>
+          </div>
+        </div>
+        <el-empty v-else description="暂无答题记录" />
       </div>
     </el-dialog>
   </div>
@@ -188,7 +237,7 @@ import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import { getCourseList } from '@/api/course'
-import { getRecordPage, getMyRecords, getRecordById } from '@/api/exam'
+import { getRecordPage, getMyRecords, getRecordDetailById } from '@/api/exam'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -306,7 +355,7 @@ const handleView = async (row) => {
   viewDialogVisible.value = true
   detailLoading.value = true
   try {
-    const res = await getRecordById(row.id)
+    const res = await getRecordDetailById(row.id)
     if (res.code === 200) {
       recordDetail.value = res.data
     }
@@ -337,6 +386,20 @@ const getScoreType = (row) => {
   if (row.isPassed === 1) return 'success'
   return 'danger'
 }
+
+/**
+ * 获取题型文本
+ */
+const getQuestionTypeText = (type) => {
+  const typeMap = {
+    1: '单选题',
+    2: '多选题',
+    3: '判断题',
+    4: '填空题',
+    5: '简答题'
+  }
+  return typeMap[type] || '未知'
+}
 </script>
 
 <style scoped>
@@ -348,5 +411,18 @@ const getScoreType = (row) => {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+
+.answer-item .question-content {
+  line-height: 1.8;
+}
+
+.answer-item .question-content p {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+}
+
+.answer-item .question-content strong {
+  color: #303133;
 }
 </style>
