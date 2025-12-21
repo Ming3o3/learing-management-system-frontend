@@ -154,7 +154,7 @@
             {{ recordDetail.paperName }}
           </el-descriptions-item>
           <el-descriptions-item label="学生">
-            {{ recordDetail.studentName }}({{ recordDetail.studentNo }})
+            {{ recordDetail.studentName }}<span v-if="recordDetail.studentNo">({{ recordDetail.studentNo }})</span>
           </el-descriptions-item>
           <el-descriptions-item label="开始时间">
             {{ recordDetail.startTime }}
