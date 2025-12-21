@@ -298,6 +298,10 @@ const loadRecordList = async () => {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize
     }
+    // 如果是教师角色，只查询自己创建的试卷的考试记录
+    if (isTeacher.value) {
+      params.teacherId = userStore.userInfo.id
+    }
     const res = await getRecordPage(params)
 
     if (res.code === 200) {

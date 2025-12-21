@@ -220,6 +220,10 @@ const loadQuestionList = async () => {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize
     }
+    // 如果是教师角色，只查询自己创建的试题
+    if (isTeacher.value) {
+      params.teacherId = userStore.userInfo.id
+    }
     const res = await getQuestionPage(params)
     if (res.code === 200) {
       tableData.value = res.data.list || []
