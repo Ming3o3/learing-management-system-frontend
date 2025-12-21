@@ -202,7 +202,12 @@ onMounted(async () => {
  */
 const loadCourseList = async () => {
   try {
-    const res = await getCourseList({ status: 1 })
+    const params = { status: 1 }
+    // 如果是教师角色，只查询自己的课程
+    if (isTeacher.value) {
+      params.teacherId = userStore.userInfo.id
+    }
+    const res = await getCourseList(params)
     courseList.value = res.data || []
   } catch (error) {
     console.error('加载课程列表失败:', error)
