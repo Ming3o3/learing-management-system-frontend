@@ -7,28 +7,46 @@
 
       <!-- 教师视图 - 按试卷查看 -->
       <template v-if="isTeacher || isAdmin">
-        <el-form :inline="true" :model="searchForm">
-          <el-form-item label="试卷">
-            <el-select
-              v-model="searchForm.paperId"
-              placeholder="请选择试卷"
+        <el-form :inline="true" :model="searchForm" @submit.prevent="handleSearch">
+          <el-form-item label="试卷名称">
+            <el-input
+              v-model="searchForm.paperName"
+              placeholder="请输入试卷名称"
               clearable
-              style="width: 300px"
-              @change="loadRecordList"
+              style="width: 200px"
+            />
+          </el-form-item>
+          <el-form-item label="课程">
+            <el-select
+              v-model="searchForm.courseId"
+              placeholder="请选择课程"
+              clearable
+              style="width: 200px"
             >
               <el-option
-                v-for="paper in paperList"
-                :key="paper.id"
-                :label="paper.paperName"
-                :value="paper.id"
+                v-for="course in courseList"
+                :key="course.id"
+                :label="course.courseName"
+                :value="course.id"
               />
             </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="handleSearch">
+              <el-icon><Search /></el-icon>
+              查询
+            </el-button>
+            <el-button @click="handleReset">
+              <el-icon><Refresh /></el-icon>
+              重置
+            </el-button>
           </el-form-item>
         </el-form>
 
         <el-table v-loading="loading" :data="tableData" border stripe>
           <el-table-column prop="id" label="ID" width="80" />
           <el-table-column prop="paperName" label="试卷名称" width="200" show-overflow-tooltip />
+          <el-table-column prop="courseName" label="课程名称" width="140" show-overflow-tooltip />
           <el-table-column prop="studentName" label="学生姓名" width="120" />
           <el-table-column prop="studentNo" label="学号" width="150" />
           <el-table-column prop="startTime" label="开始时间" width="160" />
@@ -92,7 +110,8 @@
       <!-- 学生视图 - 我的考试记录 -->
       <template v-else>
         <el-table v-loading="loading" :data="myRecords" border stripe>
-          <el-table-column prop="paperName" label="试卷名称" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="paperName" label="试卷名称" width="200" show-overflow-tooltip />
+          <el-table-column prop="courseName" label="课程名称" width="140" show-overflow-tooltip />
           <el-table-column prop="startTime" label="开始时间" width="160" />
           <el-table-column prop="submitTime" label="提交时间" width="160" />
           <el-table-column prop="totalScore" label="得分" width="100">
@@ -167,25 +186,28 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
-import { getPaperPage, getRecordsByPaper, getMyRecords, getRecordById, correctExam } from '@/api/exam'
+import { Search, Refresh } from '@element-plus/icons-vue'
+import { getCourseList } from '@/api/course'
+import { getRecordPage, getMyRecords, getRecordById } from '@/api/exam'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-const isTeacher = computed(() => userStore.userInfo?.roleId === 2)
-const isAdmin = computed(() => userStore.userInfo?.roleId === 1)
-const isStudent = computed(() => userStore.userInfo?.roleId === 3)
+const isTeacher = computed(() => userStore.isTeacher)
+const isAdmin = computed(() => userStore.isAdmin)
+const isStudent = computed(() => userStore.isStudent)
 
 const loading = ref(false)
 const detailLoading = ref(false)
-const paperList = ref([])
+const courseList = ref([])
 const tableData = ref([])
 const myRecords = ref([])
 const viewDialogVisible = ref(false)
 const recordDetail = ref({})
 
 const searchForm = reactive({
-  paperId: null
+  paperName: '',
+  courseId: null
 })
 
 const pagination = reactive({
@@ -196,23 +218,22 @@ const pagination = reactive({
 
 onMounted(async () => {
   if (isTeacher.value || isAdmin.value) {
-    await loadPaperList()
+    await loadCourseList()
+    await loadRecordList()
   } else {
     await loadMyRecords()
   }
 })
 
 /**
- * 加载试卷列表
+ * 加载课程列表
  */
-const loadPaperList = async () => {
+const loadCourseList = async () => {
   try {
-    const res = await getPaperPage({ status: 1, pageNum: 1, pageSize: 100 })
-    if (res.code === 200) {
-      paperList.value = res.data.list || []
-    }
+    const res = await getCourseList({ status: 1 })
+    courseList.value = res.data || []
   } catch (error) {
-    console.error('加载试卷列表失败:', error)
+    console.error('加载课程列表失败:', error)
   }
 }
 
@@ -220,17 +241,16 @@ const loadPaperList = async () => {
  * 加载考试记录列表
  */
 const loadRecordList = async () => {
-  if (!searchForm.paperId) {
-    tableData.value = []
-    return
-  }
-
   loading.value = true
   try {
-    const res = await getRecordsByPaper(searchForm.paperId, {
+    const params = {
+      paperName: searchForm.paperName,
+      courseId: searchForm.courseId,
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize
-    })
+    }
+    const res = await getRecordPage(params)
+
     if (res.code === 200) {
       tableData.value = res.data.list || []
       pagination.total = res.data.total || 0
@@ -241,6 +261,24 @@ const loadRecordList = async () => {
   } finally {
     loading.value = false
   }
+}
+
+/**
+ * 搜索
+ */
+const handleSearch = () => {
+  pagination.pageNum = 1
+  loadRecordList()
+}
+
+/**
+ * 重置
+ */
+const handleReset = () => {
+  searchForm.paperName = ''
+  searchForm.courseId = null
+  pagination.pageNum = 1
+  loadRecordList()
 }
 
 /**
@@ -283,17 +321,12 @@ const handleView = async (row) => {
 /**
  * 批改
  */
-const handleCorrect = async (row) => {
-  try {
-    const res = await correctExam(row.id)
-    if (res.code === 200) {
-      ElMessage.success('批改成功')
-      await loadRecordList()
-    }
-  } catch (error) {
-    ElMessage.error('批改失败')
-    console.error(error)
-  }
+const handleCorrect = (row) => {
+  // 跳转到批改页面
+  router.push({
+    name: 'ExamCorrect',
+    params: { id: row.id }
+  })
 }
 
 /**

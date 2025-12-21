@@ -163,6 +163,12 @@ const routes = [
         component: () => import('@/views/exam/ExamRecordList.vue'),
         meta: { title: '考试记录' }
       },
+      {
+        path: 'exam/correct/:id',
+        name: 'ExamCorrect',
+        component: () => import('@/views/exam/ExamCorrect.vue'),
+        meta: { title: '批改试卷', roles: ['ADMIN', 'TEACHER'] }
+      },
       // 成绩管理
       {
         path: 'scores',

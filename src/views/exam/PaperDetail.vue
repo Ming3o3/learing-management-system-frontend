@@ -83,8 +83,8 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-const isTeacher = computed(() => userStore.userInfo?.roleId === 2)
-const isAdmin = computed(() => userStore.userInfo?.roleId === 1)
+const isTeacher = computed(() => userStore.isTeacher)
+const isAdmin = computed(() => userStore.isAdmin)
 
 const loading = ref(false)
 const paperDetail = reactive({

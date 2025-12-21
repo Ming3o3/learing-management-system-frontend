@@ -272,6 +272,20 @@ export function correctExam(recordId) {
 }
 
 /**
+ * 批改单道主观题
+ * @param {Number} answerId 答题记录ID
+ * @param {Number} score 分数
+ * @returns {Promise}
+ */
+export function correctAnswer(answerId, score) {
+  return request({
+    url: `/exam/record/correct-answer/${answerId}`,
+    method: 'post',
+    params: { score }
+  })
+}
+
+/**
  * 根据ID查询考试记录
  * @param {Number} id 考试记录ID
  * @returns {Promise}
@@ -279,6 +293,31 @@ export function correctExam(recordId) {
 export function getRecordById(id) {
   return request({
     url: `/exam/record/${id}`,
+    method: 'get'
+  })
+}
+
+/**
+ * 分页查询所有考试记录
+ * @param {Object} params {pageNum, pageSize}
+ * @returns {Promise}
+ */
+export function getRecordPage(params) {
+  return request({
+    url: '/exam/record/page',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 根据ID查询考试记录详情(包含答题详情)
+ * @param {Number} id 考试记录ID
+ * @returns {Promise}
+ */
+export function getRecordDetailById(id) {
+  return request({
+    url: `/exam/record/detail/${id}`,
     method: 'get'
   })
 }
