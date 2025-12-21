@@ -136,6 +136,10 @@ const loadCourseList = async () => {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize,
     }
+    // 如果是教师角色，只查询自己的课程
+    if (isTeacher.value) {
+      params.teacherId = userStore.userInfo.id
+    }
     const res = await getCoursePage(params)
     const data = res?.data
     tableData.value = data?.list || []
