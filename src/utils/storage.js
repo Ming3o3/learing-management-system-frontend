@@ -32,7 +32,7 @@ export const local = {
 
   clear() {
     localStorage.clear()
-  }
+  },
 }
 
 /**
@@ -62,5 +62,26 @@ export const session = {
 
   clear() {
     sessionStorage.clear()
-  }
+  },
+}
+
+/**
+ * 获取 Token
+ */
+export const getToken = () => {
+  return local.get('token')
+}
+
+/**
+ * 设置 Token
+ */
+export const setToken = (token) => {
+  local.set('token', token)
+}
+
+/**
+ * 移除 Token
+ */
+export const removeToken = () => {
+  local.remove('token')
 }
