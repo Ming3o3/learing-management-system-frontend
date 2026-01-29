@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # 前端服务
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend.Dockerfile
+    container_name: lms-frontend
+    ports:
+      - '80:80'
+    environment:
+      - NODE_ENV=production
+    networks:
+      - lms-network
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # 后端服务 (Spring Boot)
+  backend:
+    # 使用已构建的后端镜像，或者指定后端Dockerfile路径
+    # image: lms-backend:latest
+    build:
+      context: ../../lms-backend # 根据实际后端项目路径调整
+      dockerfile: ../lms-frontend/LMS/docker/backend.Dockerfile
+    container_name: lms-backend
+    ports:
+      - '8080:8080'
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/learing-management-system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=English629
+    networks:
+      - lms-network
+    external_links:
+      - mysql:mysql
+    restart: unless-stopped
+
+networks:
+  lms-network:
+    driver: bridge
