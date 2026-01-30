@@ -26,10 +26,21 @@
         <p>题目数量: {{ questions.length }} 题</p>
         <p>开始时间: {{ paperInfo.startTime }}</p>
         <p>结束时间: {{ paperInfo.endTime }}</p>
-        <p style="margin-top: 10px; color: #e6a23c">
-          注意: 考试开始后不可中途退出,请确保网络畅通!
+        <p style="margin-top: 10px; color: #e6a23c">注意: 考试开始后不可中途退出,请确保网络畅通!</p>
+        <p style="margin-top: 5px; color: #f56c6c">
+          ⚠️ 本场考试启用AI监考，需上传身份照片进行人脸识别验证
         </p>
       </el-alert>
+
+      <!-- 身份验证步骤 -->
+      <div v-if="examStatus === 'identity-verify'" style="margin-top: 20px">
+        <IdentityPhotoUpload
+          :exam-id="parseInt(route.params.id)"
+          :student-id="getCurrentUserId()"
+          @success="handleIdentityVerified"
+          @cancel="handleCancelIdentity"
+        />
+      </div>
 
       <!-- 开始考试按钮 -->
       <div v-if="examStatus === 'not-started'" style="text-align: center">
@@ -119,10 +130,7 @@
 
         <!-- 导航按钮 -->
         <div class="nav-buttons">
-          <el-button
-            :disabled="currentQuestionIndex === 0"
-            @click="currentQuestionIndex--"
-          >
+          <el-button :disabled="currentQuestionIndex === 0" @click="currentQuestionIndex--">
             上一题
           </el-button>
           <el-button
@@ -144,12 +152,42 @@
         sub-title="请等待系统批改或教师评分"
       >
         <template #extra>
-          <el-button type="primary" @click="router.push('/exam/records')">
-            查看考试记录
-          </el-button>
+          <el-button type="primary" @click="router.push('/exam/records')"> 查看考试记录 </el-button>
         </template>
       </el-result>
     </el-card>
+
+    <!-- 摄像头调试开关（考试进行中） -->
+    <el-button
+      v-if="examStatus === 'doing'"
+      class="debug-camera-toggle"
+      type="primary"
+      plain
+      size="small"
+      @click="debugCameraVisible = !debugCameraVisible"
+    >
+      {{ debugCameraVisible ? '隐藏摄像头预览' : '显示摄像头预览' }}
+    </el-button>
+
+    <!-- 监考摄像头组件 (考试进行中时显示) -->
+    <div
+      v-if="examStatus === 'doing' && recordId"
+      class="debug-camera-panel"
+      v-show="debugCameraVisible"
+    >
+      <ProctorCamera
+        ref="proctorCameraRef"
+        :exam-id="parseInt(route.params.id)"
+        :student-id="getCurrentUserId()"
+        :record-id="recordId"
+        :enabled="true"
+        :show-preview="debugCameraVisible"
+        :show-stats="debugCameraVisible"
+        :show-connection-status="debugCameraVisible"
+        @violation-detected="handleViolationDetected"
+        @auto-submit="handleAutoSubmit"
+      />
+    </div>
   </div>
 </template>
 
@@ -159,12 +197,16 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Clock } from '@element-plus/icons-vue'
 import { getPaperById, getQuestionByPaper, startExam, submitAnswers } from '@/api/exam'
+import ProctorCamera from '@/components/ProctorCamera.vue'
+import IdentityPhotoUpload from '@/components/IdentityPhotoUpload.vue'
+import { useProctorStore } from '@/stores/proctor'
 
 const router = useRouter()
 const route = useRoute()
+const proctorStore = useProctorStore()
 
 const loading = ref(false)
-const examStatus = ref('not-started') // not-started, doing, submitted
+const examStatus = ref('not-started') // not-started, identity-verify, doing, submitted
 const paperInfo = ref({})
 const questions = ref([])
 const answers = reactive({})
@@ -172,6 +214,8 @@ const multipleAnswers = reactive({})
 const currentQuestionIndex = ref(0)
 const recordId = ref(null)
 const remainingTime = ref(0)
+const proctorCameraRef = ref(null)
+const debugCameraVisible = ref(false)
 let timer = null
 
 const currentQuestion = computed(() => questions.value[currentQuestionIndex.value])
@@ -228,7 +272,24 @@ const loadQuestions = async (paperId) => {
  */
 const handleStartExam = async () => {
   try {
-    const res = await startExam(route.params.id)
+    // 先进入身份验证环节
+    examStatus.value = 'identity-verify'
+  } catch (error) {
+    ElMessage.error(error.message || '进入考试失败')
+    console.error(error)
+  }
+}
+
+/**
+ * 身份验证完成
+ */
+const handleIdentityVerified = async () => {
+  try {
+    loading.value = true
+    const paperId = route.params.id
+
+    // 调用开始考试接口
+    const res = await startExam(paperId)
     if (res.code === 200) {
       recordId.value = res.data.id
       examStatus.value = 'doing'
@@ -237,12 +298,24 @@ const handleStartExam = async () => {
       // 启动倒计时
       startTimer()
 
-      ElMessage.success('考试已开始,请认真作答!')
+      ElMessage.success('身份验证成功，考试已开始！')
     }
   } catch (error) {
     ElMessage.error(error.message || '开始考试失败')
     console.error(error)
+    examStatus.value = 'not-started'
+  } finally {
+    loading.value = false
   }
+}
+
+/**
+ * 取消身份验证
+ */
+const handleCancelIdentity = () => {
+  examStatus.value = 'not-started'
+  proctorStore.resetIdentityPhoto()
+  ElMessage.info('已取消身份验证')
 }
 
 /**
@@ -285,15 +358,11 @@ const handleSubmitExam = async () => {
   const unansweredCount = questions.value.filter((q) => !answers[q.id]).length
   if (unansweredCount > 0) {
     try {
-      await ElMessageBox.confirm(
-        `还有 ${unansweredCount} 道题未作答,确定要提交吗?`,
-        '提示',
-        {
-          confirmButtonText: '确定提交',
-          cancelButtonText: '继续答题',
-          type: 'warning'
-        }
-      )
+      await ElMessageBox.confirm(`还有 ${unansweredCount} 道题未作答,确定要提交吗?`, '提示', {
+        confirmButtonText: '确定提交',
+        cancelButtonText: '继续答题',
+        type: 'warning',
+      })
     } catch {
       return
     }
@@ -305,12 +374,12 @@ const handleSubmitExam = async () => {
       .filter((questionId) => answers[questionId])
       .map((questionId) => ({
         questionId: parseInt(questionId),
-        studentAnswer: answers[questionId]
+        studentAnswer: answers[questionId],
       }))
 
     const res = await submitAnswers({
       recordId: recordId.value,
-      answers: answerList
+      answers: answerList,
     })
 
     if (res.code === 200) {
@@ -346,9 +415,75 @@ const getQuestionTypeText = (type) => {
     2: '多选题',
     3: '判断题',
     4: '填空题',
-    5: '简答题'
+    5: '简答题',
   }
   return types[type] || '未知'
+}
+
+/**
+ * 获取当前用户ID
+ */
+const getCurrentUserId = () => {
+  // 从 localStorage 或 sessionStorage 获取用户信息
+  try {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+    return userInfo.id || 1
+  } catch {
+    return 1
+  }
+}
+
+/**
+ * 处理违规检测
+ */
+const handleViolationDetected = (data) => {
+  console.log('[StudentExam] 检测到违规:', data)
+  // 违规已由 ProctorCamera 组件处理，这里可以添加额外逻辑
+}
+
+/**
+ * 处理自动提交
+ */
+const handleAutoSubmit = async (proctorData) => {
+  console.log('[StudentExam] 触发自动提交，违规数据:', proctorData)
+
+  try {
+    // 确认自动提交
+    await ElMessageBox.alert('由于违规次数过多，系统将自动提交您的试卷', '自动提交提示', {
+      confirmButtonText: '确定',
+      type: 'warning',
+      showClose: false,
+    })
+
+    // 组装答案数据（包含监考信息）
+    const answerList = Object.keys(answers)
+      .filter((questionId) => answers[questionId])
+      .map((questionId) => ({
+        questionId: parseInt(questionId),
+        studentAnswer: answers[questionId],
+      }))
+
+    const submitData = {
+      recordId: recordId.value,
+      answers: answerList,
+      proctorInfo: proctorData, // 添加监考数据
+    }
+
+    const res = await submitAnswers(submitData)
+
+    if (res.code === 200) {
+      examStatus.value = 'submitted'
+      if (timer) {
+        clearInterval(timer)
+      }
+      ElMessage.success('试卷已自动提交')
+    }
+  } catch (error) {
+    console.error('[StudentExam] 自动提交失败:', error)
+    if (error !== 'cancel') {
+      ElMessage.error('自动提交失败')
+    }
+  }
 }
 </script>
 
@@ -372,6 +507,25 @@ const getQuestionTypeText = (type) => {
   color: #e6a23c;
   font-size: 18px;
   font-weight: bold;
+}
+.debug-camera-toggle {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1001;
+}
+
+.debug-camera-panel {
+  position: fixed;
+  right: 24px;
+  bottom: 70px;
+  width: 360px;
+  max-width: calc(100vw - 48px);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 12px;
+  z-index: 1000;
 }
 
 .question-nav {

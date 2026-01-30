@@ -54,6 +54,11 @@ service.interceptors.response.use(
       return response
     }
 
+    // 跳过统一 code 校验（用于第三方/非统一返回格式接口）
+    if (response.config.skipCodeCheck) {
+      return res
+    }
+
     // 根据后端统一响应格式判断
     if (res.code !== 200) {
       ElMessage.error(res.message || '请求失败')
