@@ -76,6 +76,7 @@
               <el-tag v-if="row.status === 0" type="info">未开始</el-tag>
               <el-tag v-else-if="row.status === 1" type="warning">进行中</el-tag>
               <el-tag v-else-if="row.status === 2" type="primary">已提交</el-tag>
+              <el-tag v-else-if="row.status === 4" type="danger">已中断</el-tag>
               <el-tag v-else type="success">已批改</el-tag>
             </template>
           </el-table-column>
@@ -134,12 +135,21 @@
               <el-tag v-if="row.status === 0" type="info">未开始</el-tag>
               <el-tag v-else-if="row.status === 1" type="warning">进行中</el-tag>
               <el-tag v-else-if="row.status === 2" type="primary">已提交</el-tag>
+              <el-tag v-else-if="row.status === 4" type="danger">已中断</el-tag>
               <el-tag v-else type="success">已批改</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="120">
+          <el-table-column label="操作" width="200">
             <template #default="{ row }">
               <el-button type="primary" size="small" @click="handleView(row)">查看</el-button>
+              <el-button
+                v-if="row.status === 1 || row.status === 4"
+                type="success"
+                size="small"
+                @click="handleResume(row)"
+              >
+                继续考试
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -154,7 +164,8 @@
             {{ recordDetail.paperName }}
           </el-descriptions-item>
           <el-descriptions-item label="学生">
-            {{ recordDetail.studentName }}<span v-if="recordDetail.studentNo">({{ recordDetail.studentNo }})</span>
+            {{ recordDetail.studentName
+            }}<span v-if="recordDetail.studentNo">({{ recordDetail.studentNo }})</span>
           </el-descriptions-item>
           <el-descriptions-item label="开始时间">
             {{ recordDetail.startTime }}
@@ -168,19 +179,16 @@
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="状态">
-            <el-tag v-if="recordDetail.status === 3" type="success">已批改</el-tag>
-            <el-tag v-else type="warning">待批改</el-tag>
+            <el-tag :type="getStatusTagType(recordDetail.status)">
+              {{ getStatusLabel(recordDetail.status) }}
+            </el-tag>
           </el-descriptions-item>
         </el-descriptions>
 
         <!-- 答题详情列表 -->
         <el-divider>答题详情</el-divider>
         <div v-if="recordDetail.answers && recordDetail.answers.length > 0">
-          <div
-            v-for="(answer, index) in recordDetail.answers"
-            :key="answer.id"
-            class="answer-item"
-          >
+          <div v-for="(answer, index) in recordDetail.answers" :key="answer.id" class="answer-item">
             <el-card shadow="hover" style="margin-bottom: 15px">
               <template #header>
                 <div style="display: flex; justify-content: space-between; align-items: center">
@@ -194,7 +202,13 @@
                     </el-tag>
                   </span>
                   <el-tag
-                    :type="answer.score === answer.questionScore ? 'success' : (answer.score > 0 ? 'warning' : 'danger')"
+                    :type="
+                      answer.score === answer.questionScore
+                        ? 'success'
+                        : answer.score > 0
+                          ? 'warning'
+                          : 'danger'
+                    "
                     size="small"
                   >
                     得分: {{ answer.score || 0 }}
@@ -216,7 +230,9 @@
                   </el-descriptions-item>
                   <el-descriptions-item label="判定结果" v-if="answer.questionType <= 3">
                     <el-tag v-if="answer.isCorrect === 1" type="success" size="small">正确</el-tag>
-                    <el-tag v-else-if="answer.isCorrect === 0" type="danger" size="small">错误</el-tag>
+                    <el-tag v-else-if="answer.isCorrect === 0" type="danger" size="small"
+                      >错误</el-tag
+                    >
                     <el-tag v-else type="info" size="small">待批改</el-tag>
                   </el-descriptions-item>
                 </el-descriptions>
@@ -240,6 +256,15 @@ import { getCourseList } from '@/api/course'
 import { getRecordPage, getMyRecords, getRecordDetailById } from '@/api/exam'
 
 const router = useRouter()
+/**
+ * 恢复考试
+ */
+const handleResume = (row) => {
+  if (!row || !row.paperId) {
+    return
+  }
+  router.push(`/exam/take/${row.paperId}?recordId=${row.id}`)
+}
 const userStore = useUserStore()
 
 const isTeacher = computed(() => userStore.isTeacher)
@@ -256,13 +281,13 @@ const recordDetail = ref({})
 
 const searchForm = reactive({
   paperName: '',
-  courseId: null
+  courseId: null,
 })
 
 const pagination = reactive({
   pageNum: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
 })
 
 onMounted(async () => {
@@ -301,7 +326,7 @@ const loadRecordList = async () => {
       paperName: searchForm.paperName,
       courseId: searchForm.courseId,
       pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
     }
     // 如果是教师角色，只查询自己创建的试卷的考试记录
     if (isTeacher.value) {
@@ -383,7 +408,7 @@ const handleCorrect = (row) => {
   // 跳转到批改页面
   router.push({
     name: 'ExamCorrect',
-    params: { id: row.id }
+    params: { id: row.id },
   })
 }
 
@@ -397,6 +422,28 @@ const getScoreType = (row) => {
 }
 
 /**
+ * 获取状态文本
+ */
+const getStatusLabel = (status) => {
+  if (status === 0) return '未开始'
+  if (status === 1) return '进行中'
+  if (status === 2) return '已提交'
+  if (status === 4) return '已中断'
+  return '已批改'
+}
+
+/**
+ * 获取状态标签类型
+ */
+const getStatusTagType = (status) => {
+  if (status === 0) return 'info'
+  if (status === 1) return 'warning'
+  if (status === 2) return 'primary'
+  if (status === 4) return 'danger'
+  return 'success'
+}
+
+/**
  * 获取题型文本
  */
 const getQuestionTypeText = (type) => {
@@ -405,7 +452,7 @@ const getQuestionTypeText = (type) => {
     2: '多选题',
     3: '判断题',
     4: '填空题',
-    5: '简答题'
+    5: '简答题',
   }
   return typeMap[type] || '未知'
 }

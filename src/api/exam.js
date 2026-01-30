@@ -14,7 +14,7 @@ export function getPaperPage(params) {
   return request({
     url: '/exam/paper/page',
     method: 'get',
-    params
+    params,
   })
 }
 
@@ -26,7 +26,7 @@ export function getPaperPage(params) {
 export function getPaperById(id) {
   return request({
     url: `/exam/paper/${id}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -38,7 +38,7 @@ export function getPaperById(id) {
 export function getPaperByCourse(courseId) {
   return request({
     url: `/exam/paper/course/${courseId}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -51,7 +51,7 @@ export function createPaper(data) {
   return request({
     url: '/exam/paper',
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -64,7 +64,7 @@ export function updatePaper(data) {
   return request({
     url: '/exam/paper',
     method: 'put',
-    data
+    data,
   })
 }
 
@@ -76,7 +76,7 @@ export function updatePaper(data) {
 export function deletePaper(id) {
   return request({
     url: `/exam/paper/${id}`,
-    method: 'delete'
+    method: 'delete',
   })
 }
 
@@ -88,7 +88,7 @@ export function deletePaper(id) {
 export function publishPaper(id) {
   return request({
     url: `/exam/paper/publish/${id}`,
-    method: 'post'
+    method: 'post',
   })
 }
 
@@ -101,7 +101,7 @@ export function addQuestionsToPaper(data) {
   return request({
     url: '/exam/paper/add-questions',
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -113,7 +113,7 @@ export function addQuestionsToPaper(data) {
 export function clearPaperQuestions(paperId) {
   return request({
     url: `/exam/paper/${paperId}/questions`,
-    method: 'delete'
+    method: 'delete',
   })
 }
 
@@ -126,7 +126,7 @@ export function clearPaperQuestions(paperId) {
 export function removeQuestionFromPaper(paperId, questionId) {
   return request({
     url: `/exam/paper/${paperId}/question/${questionId}`,
-    method: 'delete'
+    method: 'delete',
   })
 }
 
@@ -141,7 +141,7 @@ export function getQuestionPage(params) {
   return request({
     url: '/exam/question/page',
     method: 'get',
-    params
+    params,
   })
 }
 
@@ -153,7 +153,7 @@ export function getQuestionPage(params) {
 export function getQuestionById(id) {
   return request({
     url: `/exam/question/${id}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -165,7 +165,7 @@ export function getQuestionById(id) {
 export function getQuestionByCourse(courseId) {
   return request({
     url: `/exam/question/course/${courseId}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -177,7 +177,7 @@ export function getQuestionByCourse(courseId) {
 export function getQuestionByPaper(paperId) {
   return request({
     url: `/exam/question/paper/${paperId}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -190,7 +190,7 @@ export function createQuestion(data) {
   return request({
     url: '/exam/question',
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -203,7 +203,7 @@ export function updateQuestion(data) {
   return request({
     url: '/exam/question',
     method: 'put',
-    data
+    data,
   })
 }
 
@@ -215,7 +215,7 @@ export function updateQuestion(data) {
 export function deleteQuestion(id) {
   return request({
     url: `/exam/question/${id}`,
-    method: 'delete'
+    method: 'delete',
   })
 }
 
@@ -228,7 +228,7 @@ export function deleteQuestionBatch(ids) {
   return request({
     url: '/exam/question/batch',
     method: 'delete',
-    data: ids
+    data: ids,
   })
 }
 
@@ -242,7 +242,7 @@ export function deleteQuestionBatch(ids) {
 export function startExam(paperId) {
   return request({
     url: `/exam/record/start/${paperId}`,
-    method: 'post'
+    method: 'post',
   })
 }
 
@@ -255,7 +255,33 @@ export function submitAnswers(data) {
   return request({
     url: '/exam/record/submit',
     method: 'post',
-    data
+    data,
+  })
+}
+
+/**
+ * 中断考试（可恢复）
+ * @param {Number} recordId 考试记录ID
+ * @param {String} reason 中断原因（可选）
+ * @returns {Promise}
+ */
+export function interruptExam(recordId, reason) {
+  return request({
+    url: `/exam/record/interrupt/${recordId}`,
+    method: 'post',
+    params: { reason },
+  })
+}
+
+/**
+ * 恢复考试（根据记录ID）
+ * @param {Number} recordId 考试记录ID
+ * @returns {Promise}
+ */
+export function resumeExam(recordId) {
+  return request({
+    url: `/exam/record/resume/${recordId}`,
+    method: 'post',
   })
 }
 
@@ -267,7 +293,7 @@ export function submitAnswers(data) {
 export function correctExam(recordId) {
   return request({
     url: `/exam/record/correct/${recordId}`,
-    method: 'post'
+    method: 'post',
   })
 }
 
@@ -281,7 +307,7 @@ export function correctAnswer(answerId, score) {
   return request({
     url: `/exam/record/correct-answer/${answerId}`,
     method: 'post',
-    params: { score }
+    params: { score },
   })
 }
 
@@ -293,7 +319,7 @@ export function correctAnswer(answerId, score) {
 export function getRecordById(id) {
   return request({
     url: `/exam/record/${id}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -306,7 +332,7 @@ export function getRecordPage(params) {
   return request({
     url: '/exam/record/page',
     method: 'get',
-    params
+    params,
   })
 }
 
@@ -318,7 +344,7 @@ export function getRecordPage(params) {
 export function getRecordDetailById(id) {
   return request({
     url: `/exam/record/detail/${id}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -332,7 +358,7 @@ export function getRecordsByPaper(paperId, params) {
   return request({
     url: `/exam/record/paper/${paperId}`,
     method: 'get',
-    params
+    params,
   })
 }
 
@@ -343,7 +369,7 @@ export function getRecordsByPaper(paperId, params) {
 export function getMyRecords() {
   return request({
     url: '/exam/record/my',
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -355,6 +381,6 @@ export function getMyRecords() {
 export function getMyRecord(paperId) {
   return request({
     url: `/exam/record/my/${paperId}`,
-    method: 'get'
+    method: 'get',
   })
 }

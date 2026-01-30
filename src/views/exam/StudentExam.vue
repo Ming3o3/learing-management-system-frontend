@@ -42,9 +42,18 @@
         />
       </div>
 
-      <!-- 开始考试按钮 -->
+      <!-- 开始/继续考试按钮 -->
       <div v-if="examStatus === 'not-started'" style="text-align: center">
         <el-button type="primary" size="large" @click="handleStartExam">开始考试</el-button>
+        <el-button
+          v-if="resumeRecord"
+          size="large"
+          type="success"
+          @click="handleResumeExam"
+          style="margin-left: 12px"
+        >
+          继续考试
+        </el-button>
       </div>
 
       <!-- 答题区域 -->
@@ -196,7 +205,15 @@ import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Clock } from '@element-plus/icons-vue'
-import { getPaperById, getQuestionByPaper, startExam, submitAnswers } from '@/api/exam'
+import {
+  getPaperById,
+  getQuestionByPaper,
+  startExam,
+  submitAnswers,
+  interruptExam,
+  getMyRecord,
+  resumeExam,
+} from '@/api/exam'
 import ProctorCamera from '@/components/ProctorCamera.vue'
 import IdentityPhotoUpload from '@/components/IdentityPhotoUpload.vue'
 import { useProctorStore } from '@/stores/proctor'
@@ -216,7 +233,9 @@ const recordId = ref(null)
 const remainingTime = ref(0)
 const proctorCameraRef = ref(null)
 const debugCameraVisible = ref(false)
+const resumeRecord = ref(null)
 let timer = null
+let beforeUnloadHandler = null
 
 const currentQuestion = computed(() => questions.value[currentQuestionIndex.value])
 
@@ -225,12 +244,80 @@ onMounted(async () => {
   if (paperId) {
     await loadPaperInfo(paperId)
     await loadQuestions(paperId)
+
+    const resumeId = route.query.recordId
+    if (resumeId) {
+      await resumeByRecordId(resumeId)
+    } else {
+      await loadResumeRecord(paperId)
+    }
   }
+
+  beforeUnloadHandler = () => {
+    if (examStatus.value === 'doing' && recordId.value) {
+      navigator.sendBeacon?.(
+        `${import.meta.env.VITE_APP_BASE_API || '/api'}/exam/record/interrupt/${recordId.value}`,
+      )
+    }
+  }
+  window.addEventListener('beforeunload', beforeUnloadHandler)
 })
+/**
+ * 加载可恢复的考试记录
+ */
+const loadResumeRecord = async (paperId) => {
+  try {
+    const res = await getMyRecord(paperId)
+    if (res.code === 200 && res.data && (res.data.status === 1 || res.data.status === 4)) {
+      resumeRecord.value = res.data
+    } else {
+      resumeRecord.value = null
+    }
+  } catch (error) {
+    resumeRecord.value = null
+  }
+}
+
+/**
+ * 按记录ID恢复考试
+ */
+const resumeByRecordId = async (recordIdQuery) => {
+  try {
+    loading.value = true
+    const res = await resumeExam(recordIdQuery)
+    if (res.code === 200) {
+      recordId.value = res.data.id
+      examStatus.value = 'doing'
+
+      if (res.data?.startTime) {
+        const start = new Date(res.data.startTime.replace(/-/g, '/')).getTime()
+        const elapsed = Math.floor((Date.now() - start) / 1000)
+        remainingTime.value = Math.max(paperInfo.value.duration * 60 - elapsed, 0)
+      } else {
+        remainingTime.value = paperInfo.value.duration * 60
+      }
+
+      startTimer()
+      ElMessage.success('已恢复考试')
+    }
+  } catch (error) {
+    ElMessage.error(error.message || '恢复考试失败')
+  } finally {
+    loading.value = false
+  }
+}
 
 onUnmounted(() => {
   if (timer) {
     clearInterval(timer)
+  }
+
+  if (beforeUnloadHandler) {
+    window.removeEventListener('beforeunload', beforeUnloadHandler)
+  }
+
+  if (examStatus.value === 'doing' && recordId.value) {
+    interruptExam(recordId.value, '离开考试页面').catch(() => {})
   }
 })
 
@@ -293,7 +380,14 @@ const handleIdentityVerified = async () => {
     if (res.code === 200) {
       recordId.value = res.data.id
       examStatus.value = 'doing'
-      remainingTime.value = paperInfo.value.duration * 60 // 转换为秒
+      // 若为恢复进入，按开始时间计算剩余时长
+      if (res.data?.startTime) {
+        const start = new Date(res.data.startTime.replace(/-/g, '/')).getTime()
+        const elapsed = Math.floor((Date.now() - start) / 1000)
+        remainingTime.value = Math.max(paperInfo.value.duration * 60 - elapsed, 0)
+      } else {
+        remainingTime.value = paperInfo.value.duration * 60 // 转换为秒
+      }
 
       // 启动倒计时
       startTimer()
@@ -304,6 +398,37 @@ const handleIdentityVerified = async () => {
     ElMessage.error(error.message || '开始考试失败')
     console.error(error)
     examStatus.value = 'not-started'
+  } finally {
+    loading.value = false
+  }
+}
+
+/**
+ * 继续考试（恢复入口）
+ */
+const handleResumeExam = async () => {
+  try {
+    loading.value = true
+    const paperId = route.params.id
+
+    const res = await startExam(paperId)
+    if (res.code === 200) {
+      recordId.value = res.data.id
+      examStatus.value = 'doing'
+
+      if (res.data?.startTime) {
+        const start = new Date(res.data.startTime.replace(/-/g, '/')).getTime()
+        const elapsed = Math.floor((Date.now() - start) / 1000)
+        remainingTime.value = Math.max(paperInfo.value.duration * 60 - elapsed, 0)
+      } else {
+        remainingTime.value = paperInfo.value.duration * 60
+      }
+
+      startTimer()
+      ElMessage.success('已恢复考试')
+    }
+  } catch (error) {
+    ElMessage.error(error.message || '恢复考试失败')
   } finally {
     loading.value = false
   }
