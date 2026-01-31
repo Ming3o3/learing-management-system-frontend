@@ -1,6 +1,6 @@
 <template>
   <div class="course-detail">
-    <el-card v-loading="loading">
+    <el-card v-loading="loading" class="neon-card">
       <template #header>
         <div class="card-header">
           <span>{{ course.courseName }}</span>
@@ -39,7 +39,7 @@
     </el-card>
 
     <!-- 课程资源 -->
-    <el-card v-if="isTeacher || isAdmin" class="mt-20">
+    <el-card v-if="isTeacher || isAdmin" class="mt-20 neon-card">
       <template #header>
         <div class="card-header">
           <span>课程资源</span>
@@ -68,7 +68,7 @@
     </el-card>
 
     <!-- 学生列表 -->
-    <el-card v-if="isTeacher || isAdmin" class="mt-20">
+    <el-card v-if="isTeacher || isAdmin" class="mt-20 neon-card">
       <template #header>
         <div class="card-header">
           <span>学生列表（{{ students.length }}人）</span>
@@ -214,6 +214,9 @@ const handleRemoveStudent = async (row) => {
 <style scoped>
 .course-detail {
   padding: 20px;
+  --el-text-color-primary: #e9fbff;
+  --el-text-color-regular: #e9fbff;
+  --el-text-color-secondary: rgba(233, 251, 255, 0.78);
 }
 
 .card-header {
@@ -222,6 +225,9 @@ const handleRemoveStudent = async (row) => {
   align-items: center;
   font-size: 18px;
   font-weight: 600;
+  color: #e7f6ff;
+  letter-spacing: 0.6px;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.35);
 }
 
 .header-actions {
@@ -232,13 +238,145 @@ const handleRemoveStudent = async (row) => {
 .description,
 .content {
   padding: 15px;
-  background-color: #f5f7fa;
+  background: rgba(6, 16, 34, 0.85);
+  border: 1px solid rgba(0, 229, 255, 0.25);
   border-radius: 4px;
   line-height: 1.8;
-  color: #606266;
+  color: #e9fbff;
+  box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.08);
 }
 
 .mt-20 {
   margin-top: 20px;
+}
+
+.neon-card {
+  background: rgba(20, 35, 70, 0.75);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    0 0 15px rgba(0, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+:deep(.el-card__header) {
+  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.1), transparent);
+}
+
+:deep(.el-descriptions) {
+  --el-descriptions-table-border: 1px solid rgba(0, 229, 255, 0.2);
+  --el-descriptions-item-bordered-label-background: rgba(8, 20, 40, 0.9);
+  --el-descriptions-item-bordered-content-background: rgba(10, 26, 48, 0.8);
+}
+
+:deep(.el-descriptions__label) {
+  color: #e9fbff;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.25);
+}
+
+:deep(.el-descriptions__content) {
+  color: #f5fbff;
+  text-shadow: 0 0 6px rgba(0, 229, 255, 0.2);
+}
+
+:deep(.el-descriptions__cell.el-descriptions__content.is-bordered-content) {
+  color: #f5fbff;
+}
+
+:deep(.el-descriptions__cell) {
+  background-color: rgba(6, 16, 34, 0.95);
+}
+
+:deep(.el-descriptions__label.is-bordered-label) {
+  background-color: rgba(6, 16, 34, 0.98);
+}
+
+:deep(.el-descriptions__content.is-bordered-content) {
+  background-color: rgba(9, 24, 44, 0.9);
+}
+
+:deep(.el-divider__text) {
+  background: rgba(6, 16, 34, 0.95);
+  padding: 0 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 229, 255, 0.2);
+}
+
+:deep(.el-divider__text) {
+  color: #7de7ff;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.35);
+}
+
+:deep(.el-table) {
+  --el-table-border-color: rgba(0, 229, 255, 0.15);
+  --el-table-header-bg-color: rgba(8, 20, 40, 0.9);
+  --el-table-row-hover-bg-color: rgba(0, 229, 255, 0.08);
+  --el-table-bg-color: rgba(8, 20, 40, 0.75);
+  --el-table-tr-bg-color: rgba(8, 20, 40, 0.75);
+  --el-table-row-striped-bg-color: rgba(10, 26, 48, 0.85);
+  background-color: transparent;
+  color: #e9fbff;
+}
+
+:deep(.el-table__inner-wrapper),
+:deep(.el-table__body-wrapper),
+:deep(.el-table__header-wrapper) {
+  background: rgba(8, 20, 40, 0.75);
+}
+
+:deep(.el-table th.el-table__cell) {
+  color: #bfefff;
+  font-weight: 600;
+  background: rgba(8, 20, 40, 0.9);
+}
+
+:deep(.el-table__cell) {
+  border-bottom: 1px solid rgba(0, 229, 255, 0.12);
+}
+
+:deep(.el-tag) {
+  border-radius: 6px;
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  background: rgba(0, 229, 255, 0.12);
+  color: #8fefff;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+}
+
+:deep(.el-tag--success) {
+  border-color: rgba(0, 255, 180, 0.45);
+  background: rgba(0, 255, 180, 0.12);
+  color: #7dffcf;
+  box-shadow: 0 0 10px rgba(0, 255, 180, 0.25);
+}
+
+:deep(.el-tag--warning) {
+  border-color: rgba(255, 204, 102, 0.65);
+  background: rgba(255, 204, 102, 0.12);
+  color: #ffd37a;
+  box-shadow: 0 0 10px rgba(255, 204, 102, 0.35);
+}
+
+:deep(.el-tag--info) {
+  border-color: rgba(120, 160, 255, 0.5);
+  background: rgba(120, 160, 255, 0.12);
+  color: #b6ccff;
+  box-shadow: 0 0 10px rgba(120, 160, 255, 0.28);
+}
+
+:deep(.el-progress-bar__inner) {
+  background: linear-gradient(90deg, #00e5ff, #bd00ff);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+}
+
+:deep(.el-progress-bar__outer) {
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+:deep(.el-empty__description) {
+  color: rgba(231, 246, 255, 0.55);
 }
 </style>

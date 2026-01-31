@@ -25,3 +25,329 @@
   color: #ffffff;
   box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
 }
+
+/* 科技风格：退出登录提示框（MessageBox） */
+.el-overlay-message-box {
+  backdrop-filter: blur(6px);
+  background:
+    radial-gradient(circle at 20% 10%, rgba(0, 229, 255, 0.12), rgba(0, 0, 0, 0.65)),
+    rgba(2, 6, 23, 0.65);
+}
+
+.el-message-box {
+  background: linear-gradient(135deg, rgba(7, 18, 38, 0.98), rgba(3, 10, 24, 0.98));
+  border: 1px solid rgba(0, 229, 255, 0.6);
+  box-shadow:
+    0 0 0 1px rgba(0, 229, 255, 0.2),
+    0 10px 30px rgba(0, 0, 0, 0.55),
+    0 0 22px rgba(0, 229, 255, 0.25);
+  color: #d9f6ff;
+}
+
+.el-message-box__header {
+  border-bottom: 1px solid rgba(0, 229, 255, 0.25);
+}
+
+.el-message-box__title {
+  color: #7de7ff;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.35);
+}
+
+.el-message-box__content {
+  color: #c6f2ff;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.el-message-box__headerbtn .el-message-box__close {
+  color: rgba(125, 231, 255, 0.75);
+}
+
+.el-message-box__headerbtn .el-message-box__close:hover {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+}
+
+.el-message-box__status.el-icon {
+  color: #f6c177;
+  filter: drop-shadow(0 0 6px rgba(246, 193, 119, 0.45));
+}
+
+.el-message-box__btns .el-button {
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.2);
+}
+
+.el-message-box__btns .el-button--primary {
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.85), rgba(0, 130, 255, 0.85));
+  border-color: rgba(0, 229, 255, 0.95);
+  color: #02111a;
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.35);
+}
+
+.el-message-box__btns .el-button--primary:hover {
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.95), rgba(0, 156, 255, 0.95));
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+}
+
+/* 科技风格：通用模块容器（按需在页面根节点添加 neon-module 类） */
+.neon-module .el-card {
+  background: rgba(20, 35, 70, 0.75);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    0 0 15px rgba(0, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+.neon-module .el-card__header {
+  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+  color: #e7f6ff;
+  font-weight: 600;
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.1), transparent);
+}
+
+.neon-module .el-form-item__label {
+  color: #b9dcff;
+}
+
+.neon-module .el-input__wrapper,
+.neon-module .el-textarea__inner,
+.neon-module .el-select__wrapper,
+.neon-module .el-input-number,
+.neon-module .el-date-editor {
+  background: rgba(10, 20, 40, 0.7);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.08);
+}
+
+.neon-module .el-input__inner,
+.neon-module .el-textarea__inner,
+.neon-module .el-select__placeholder,
+.neon-module .el-select__selected-item {
+  color: #e9fbff;
+}
+
+.neon-module .el-input-number__decrease,
+.neon-module .el-input-number__increase {
+  background: rgba(8, 20, 40, 0.9);
+  color: #9edbff;
+  border: 1px solid rgba(0, 229, 255, 0.25);
+}
+
+.neon-module .el-input-number__decrease:hover,
+.neon-module .el-input-number__increase:hover {
+  color: #8fefff;
+  border-color: rgba(0, 229, 255, 0.5);
+}
+
+.neon-module .el-table {
+  --el-table-border-color: rgba(0, 229, 255, 0.15);
+  --el-table-header-bg-color: rgba(8, 20, 40, 0.9);
+  --el-table-row-hover-bg-color: rgba(0, 229, 255, 0.08);
+  --el-table-bg-color: rgba(8, 20, 40, 0.75);
+  --el-table-tr-bg-color: rgba(8, 20, 40, 0.75);
+  --el-table-row-striped-bg-color: rgba(10, 26, 48, 0.85);
+  background-color: transparent;
+  color: #e9fbff;
+}
+
+.neon-module .el-table th.el-table__cell {
+  color: #bfefff;
+  font-weight: 600;
+  background: rgba(8, 20, 40, 0.9);
+}
+
+.neon-module .el-table__cell {
+  border-bottom: 1px solid rgba(0, 229, 255, 0.12);
+}
+
+.neon-module .el-table__inner-wrapper,
+.neon-module .el-table__body-wrapper,
+.neon-module .el-table__header-wrapper {
+  background: rgba(8, 20, 40, 0.75);
+}
+
+.neon-module .el-table__body tr,
+.neon-module .el-table__body td.el-table__cell,
+.neon-module .el-table__header tr,
+.neon-module .el-table__header th.el-table__cell {
+  background-color: rgba(8, 20, 40, 0.75);
+}
+
+.neon-module .el-table--striped .el-table__body tr.el-table__row--striped,
+.neon-module .el-table--striped .el-table__body tr.el-table__row--striped > td.el-table__cell {
+  background-color: rgba(10, 26, 48, 0.85) !important;
+}
+
+.neon-module .el-tag {
+  border-radius: 6px;
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  background: rgba(0, 229, 255, 0.12);
+  color: #8fefff;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+}
+
+.neon-module .el-tag--success {
+  border-color: rgba(0, 255, 180, 0.45);
+  background: rgba(0, 255, 180, 0.12);
+  color: #7dffcf;
+  box-shadow: 0 0 10px rgba(0, 255, 180, 0.25);
+}
+
+.neon-module .el-tag--warning {
+  border-color: rgba(255, 204, 102, 0.65);
+  background: rgba(255, 204, 102, 0.12);
+  color: #ffd37a;
+  box-shadow: 0 0 10px rgba(255, 204, 102, 0.35);
+}
+
+.neon-module .el-tag--info {
+  border-color: rgba(120, 160, 255, 0.5);
+  background: rgba(120, 160, 255, 0.12);
+  color: #b6ccff;
+  box-shadow: 0 0 10px rgba(120, 160, 255, 0.28);
+}
+
+.neon-module .el-tag--danger {
+  border-color: rgba(255, 120, 120, 0.6);
+  background: rgba(255, 120, 120, 0.12);
+  color: #ff9b9b;
+  box-shadow: 0 0 10px rgba(255, 120, 120, 0.28);
+}
+
+.neon-module .el-tag--primary {
+  border-color: rgba(0, 153, 255, 0.6);
+  background: rgba(0, 153, 255, 0.12);
+  color: #8fd0ff;
+  box-shadow: 0 0 10px rgba(0, 153, 255, 0.28);
+}
+
+.neon-module .el-pagination {
+  --el-pagination-button-bg-color: rgba(8, 20, 40, 0.8);
+  --el-pagination-hover-color: #8fefff;
+  --el-pagination-text-color: #cfe9ff;
+}
+
+.neon-module .el-pagination__total,
+.neon-module .el-pagination__sizes,
+.neon-module .el-pagination__jump {
+  color: #cfe9ff;
+}
+
+/* 全局修复：加载遮罩白底问题 */
+.el-loading-mask {
+  background-color: rgba(8, 20, 40, 0.7) !important;
+  backdrop-filter: blur(2px);
+}
+
+.el-loading-spinner .path {
+  stroke: #00e5ff;
+}
+
+.el-loading-text {
+  color: #bfefff;
+}
+
+.neon-module .el-pagination .btn-prev,
+.neon-module .el-pagination .btn-next {
+  background: rgba(8, 20, 40, 0.8);
+  color: #9edbff;
+  border: 1px solid rgba(0, 229, 255, 0.2);
+}
+
+.neon-module .el-pagination .btn-prev:hover,
+.neon-module .el-pagination .btn-next:hover {
+  color: #8fefff;
+  border-color: rgba(0, 229, 255, 0.5);
+}
+
+.neon-module .el-pager li {
+  background: rgba(8, 20, 40, 0.8);
+  color: #cfe9ff;
+  border: 1px solid rgba(0, 229, 255, 0.2);
+}
+
+.neon-module .el-pager li.is-active {
+  background: rgba(0, 229, 255, 0.2);
+  color: #8fefff;
+  border-color: rgba(0, 229, 255, 0.6);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
+}
+
+.neon-module .el-descriptions {
+  --el-descriptions-table-border: 1px solid rgba(0, 229, 255, 0.2);
+  --el-descriptions-item-bordered-label-background: rgba(8, 20, 40, 0.9);
+  --el-descriptions-item-bordered-content-background: rgba(10, 26, 48, 0.8);
+}
+
+.neon-module .el-descriptions__label {
+  color: #e9fbff;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.25);
+}
+
+.neon-module .el-descriptions__content {
+  color: #f5fbff;
+  text-shadow: 0 0 6px rgba(0, 229, 255, 0.2);
+}
+
+.neon-module .el-descriptions__cell {
+  background-color: rgba(6, 16, 34, 0.95);
+}
+
+.neon-module .el-descriptions__label.is-bordered-label {
+  background-color: rgba(6, 16, 34, 0.98);
+}
+
+.neon-module .el-descriptions__content.is-bordered-content {
+  background-color: rgba(9, 24, 44, 0.9);
+}
+
+.neon-module .el-divider__text {
+  background: rgba(6, 16, 34, 0.95);
+  padding: 0 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  color: #7de7ff;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.35);
+}
+
+.neon-module .el-alert {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+}
+
+.neon-module .el-alert__title,
+.neon-module .el-alert__description {
+  color: #cfe9ff;
+}
+
+.neon-module .el-empty__description {
+  color: rgba(231, 246, 255, 0.55);
+}
+
+/* 下拉面板统一科技风（全局） */
+.el-select-dropdown__wrap {
+  background: rgba(8, 20, 40, 0.98);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+}
+
+.el-select-dropdown__item {
+  color: #b9dcff;
+}
+
+.el-select-dropdown__item.is-hovering {
+  background: rgba(0, 229, 255, 0.12);
+  color: #e9fbff;
+}
+
+.el-select-dropdown__item.is-selected {
+  background: rgba(0, 229, 255, 0.2);
+  color: #7de7ff;
+  font-weight: 600;
+}

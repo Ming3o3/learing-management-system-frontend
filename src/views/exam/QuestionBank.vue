@@ -1,5 +1,5 @@
 <template>
-  <div class="question-bank">
+  <div class="question-bank neon-module">
     <el-card class="search-card">
       <el-form :inline="true" :model="searchForm">
         <el-form-item label="课程">
@@ -146,13 +146,13 @@ const searchForm = reactive({
   courseId: null,
   questionType: null,
   difficulty: null,
-  title: ''
+  title: '',
 })
 
 const pagination = reactive({
   pageNum: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
 })
 
 const tableData = ref([])
@@ -163,14 +163,14 @@ const questionTypeOptions = [
   { label: '多选题', value: 2 },
   { label: '判断题', value: 3 },
   { label: '填空题', value: 4 },
-  { label: '简答题', value: 5 }
+  { label: '简答题', value: 5 },
 ]
 
 // 难度选项
 const difficultyOptions = [
   { label: '简单', value: 1 },
   { label: '中等', value: 2 },
-  { label: '困难', value: 3 }
+  { label: '困难', value: 3 },
 ]
 
 onMounted(async () => {
@@ -201,7 +201,7 @@ const loadQuestionList = async () => {
     const res = await getQuestionPage({
       ...searchForm,
       pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
     })
     if (res.code === 200) {
       tableData.value = res.data?.list || res.data?.records || []
@@ -225,7 +225,7 @@ const handleReset = () => {
     courseId: null,
     questionType: null,
     difficulty: null,
-    title: ''
+    title: '',
   })
   handleSearch()
 }
@@ -256,7 +256,7 @@ const handleDelete = async (row) => {
     await ElMessageBox.confirm('确定删除该试题吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     const res = await deleteQuestion(row.id)
@@ -280,7 +280,7 @@ const handleBatchDelete = async () => {
     await ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 个试题吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     const res = await deleteQuestionBatch(selectedIds.value)

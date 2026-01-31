@@ -1,5 +1,5 @@
 <template>
-  <div class="exam-detail">
+  <div class="exam-detail neon-module">
     <el-card v-loading="loading">
       <template #header>
         <div class="card-header">
@@ -31,8 +31,10 @@
       <el-divider v-if="exam.description" content-position="left">试卷说明</el-divider>
       <div v-if="exam.description" class="description">{{ exam.description }}</div>
 
-      <el-divider content-position="left">试题列表（共 {{ exam.questions?.length || 0 }} 题）</el-divider>
-      
+      <el-divider content-position="left"
+        >试题列表（共 {{ exam.questions?.length || 0 }} 题）</el-divider
+      >
+
       <div v-if="exam.questions?.length" class="questions">
         <div v-for="(question, index) in exam.questions" :key="question.id" class="question-item">
           <div class="question-header">
@@ -41,7 +43,7 @@
             <span class="question-score">{{ question.score }} 分</span>
           </div>
           <div class="question-content">{{ question.content }}</div>
-          
+
           <div v-if="question.options?.length" class="options">
             <div v-for="(option, optIndex) in question.options" :key="option.id" class="option">
               <span class="option-label">{{ String.fromCharCode(65 + optIndex) }}.</span>
@@ -110,7 +112,7 @@ const loadExamDetail = async () => {
     loading.value = true
     const res = await getExamById(route.params.id)
     exam.value = res.data
-    
+
     // 教师可以查看答案
     if (isTeacher.value || isAdmin.value) {
       showAnswers.value = true
@@ -131,7 +133,7 @@ const loadExamRecords = async () => {
 }
 
 const getQuestionTypeLabel = (type) => {
-  return QUESTION_TYPE.find(t => t.value === type)?.label || type
+  return QUESTION_TYPE.find((t) => t.value === type)?.label || type
 }
 
 const handleEdit = () => {

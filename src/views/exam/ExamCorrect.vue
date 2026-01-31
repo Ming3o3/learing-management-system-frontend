@@ -1,5 +1,5 @@
 <template>
-  <div class="exam-correct">
+  <div class="exam-correct neon-module">
     <el-card v-loading="loading">
       <template #header>
         <div class="card-header">
@@ -47,12 +47,11 @@
 
       <!-- 答题列表 -->
       <div class="answers-list">
-        <div
-          v-for="(answer, index) in recordDetail.answers"
-          :key="answer.id"
-          class="answer-item"
-        >
-          <el-card shadow="hover" :class="{ 'subjective-question': isSubjectiveQuestion(answer.questionType) }">
+        <div v-for="(answer, index) in recordDetail.answers" :key="answer.id" class="answer-item">
+          <el-card
+            shadow="hover"
+            :class="{ 'subjective-question': isSubjectiveQuestion(answer.questionType) }"
+          >
             <template #header>
               <div class="question-header">
                 <div class="question-title">
@@ -92,8 +91,8 @@
               <div
                 class="content-text answer-text"
                 :class="{
-                  'correct': answer.isCorrect === 1,
-                  'wrong': answer.isCorrect === 0 && !isSubjectiveQuestion(answer.questionType)
+                  correct: answer.isCorrect === 1,
+                  wrong: answer.isCorrect === 0 && !isSubjectiveQuestion(answer.questionType),
                 }"
               >
                 {{ answer.studentAnswer || '未作答' }}
@@ -168,7 +167,7 @@ const route = useRoute()
 
 const loading = ref(false)
 const recordDetail = ref({
-  answers: []
+  answers: [],
 })
 
 // 获取考试记录ID
@@ -184,7 +183,7 @@ const loadRecordDetail = async () => {
     if (res.code === 200) {
       recordDetail.value = res.data
       // 初始化临时分数字段
-      recordDetail.value.answers.forEach(answer => {
+      recordDetail.value.answers.forEach((answer) => {
         answer.tempScore = answer.score !== null ? answer.score : null
         answer.submitting = false
       })
@@ -245,11 +244,11 @@ const isSubjectiveQuestion = (questionType) => {
  * 所有主观题是否已批改
  */
 const allSubjectiveGraded = computed(() => {
-  const subjectiveQuestions = recordDetail.value.answers.filter(answer =>
-    isSubjectiveQuestion(answer.questionType)
+  const subjectiveQuestions = recordDetail.value.answers.filter((answer) =>
+    isSubjectiveQuestion(answer.questionType),
   )
   if (subjectiveQuestions.length === 0) return false
-  return subjectiveQuestions.every(answer => answer.score !== null)
+  return subjectiveQuestions.every((answer) => answer.score !== null)
 })
 
 /**
@@ -269,7 +268,7 @@ const getStatusTagType = (status) => {
     0: 'info',
     1: 'warning',
     2: 'primary',
-    3: 'success'
+    3: 'success',
   }
   return statusTypeMap[status] || 'info'
 }
@@ -368,15 +367,17 @@ onMounted(() => {
 
 .content-label {
   font-weight: bold;
-  color: var(--el-text-color-regular);
+  color: #e9fbff;
   margin-bottom: 8px;
 }
 
 .content-text {
   padding: 10px;
-  background-color: var(--el-fill-color-light);
+  background: rgba(8, 20, 40, 0.75);
+  border: 1px solid rgba(0, 229, 255, 0.2);
   border-radius: 4px;
   line-height: 1.6;
+  color: #e9fbff;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -386,13 +387,15 @@ onMounted(() => {
 }
 
 .answer-text.correct {
-  background-color: var(--el-color-success-light-9);
-  border-left: 3px solid var(--el-color-success);
+  background: rgba(0, 255, 180, 0.12);
+  border-left: 3px solid rgba(0, 255, 180, 0.8);
+  color: #e9fbff;
 }
 
 .answer-text.wrong {
-  background-color: var(--el-color-danger-light-9);
-  border-left: 3px solid var(--el-color-danger);
+  background: rgba(255, 120, 120, 0.12);
+  border-left: 3px solid rgba(255, 120, 120, 0.85);
+  color: #e9fbff;
 }
 
 .grading-area {
@@ -406,7 +409,7 @@ onMounted(() => {
 
 .max-score {
   margin-left: 10px;
-  color: var(--el-text-color-secondary);
+  color: #cfe9ff;
 }
 
 .auto-graded-tip {
@@ -419,5 +422,10 @@ onMounted(() => {
 
 :deep(.el-descriptions__label) {
   width: 100px;
+  color: #e9fbff;
+}
+
+:deep(.el-descriptions__content) {
+  color: #e9fbff;
 }
 </style>

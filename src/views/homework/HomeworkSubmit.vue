@@ -1,6 +1,6 @@
 <template>
   <div class="homework-submit">
-    <el-card>
+    <el-card class="neon-card">
       <template #header>
         <div class="card-header">
           <span>提交作业 - {{ homework.title }}</span>
@@ -63,11 +63,11 @@ const homework = ref({})
 
 const submitForm = reactive({
   content: '',
-  files: []
+  files: [],
 })
 
 const formRules = {
-  content: [required]
+  content: [required],
 }
 
 const isOverdue = computed(() => {
@@ -98,7 +98,7 @@ const handleSubmit = async () => {
       await ElMessageBox.confirm('作业已过截止时间，确定要提交吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning'
+        type: 'warning',
       })
     }
 
@@ -107,7 +107,7 @@ const handleSubmit = async () => {
     const formData = {
       homeworkId: route.params.id,
       content: submitForm.content,
-      fileIds: submitForm.files.map(f => f.id)
+      fileIds: submitForm.files.map((f) => f.id),
     }
 
     await submitHomework(formData)
@@ -136,9 +136,53 @@ const handleCancel = () => {
 .card-header {
   font-size: 18px;
   font-weight: 600;
+  color: #e7f6ff;
+  letter-spacing: 0.6px;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.35);
 }
 
 .alert {
   margin-bottom: 20px;
+}
+
+.neon-card {
+  background: rgba(20, 35, 70, 0.75);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    0 0 15px rgba(0, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+:deep(.el-card__header) {
+  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.1), transparent);
+}
+
+:deep(.el-form-item__label) {
+  color: #b9dcff;
+}
+
+:deep(.el-input__wrapper),
+:deep(.el-textarea__inner),
+:deep(.el-date-editor) {
+  background: rgba(10, 20, 40, 0.7);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.08);
+}
+
+:deep(.el-input__inner),
+:deep(.el-textarea__inner) {
+  color: #e9fbff;
+}
+
+:deep(.el-alert) {
+  background: rgba(255, 204, 102, 0.12);
+  border: 1px solid rgba(255, 204, 102, 0.4);
+}
+
+:deep(.el-alert__title),
+:deep(.el-alert__description) {
+  color: #ffd37a;
 }
 </style>

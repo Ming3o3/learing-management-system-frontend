@@ -1,5 +1,5 @@
 <template>
-  <div class="question-form">
+  <div class="question-form neon-module">
     <el-card>
       <template #header>
         <span>{{ isEdit ? '编辑试题' : '新增试题' }}</span>
@@ -106,11 +106,7 @@
           </el-form-item>
           <el-form-item label="正确答案" prop="answer">
             <el-radio-group v-model="formData.answer">
-              <el-radio
-                v-for="option in singleChoiceOptions"
-                :key="option.key"
-                :label="option.key"
-              >
+              <el-radio v-for="option in singleChoiceOptions" :key="option.key" :label="option.key">
                 {{ option.key }}
               </el-radio>
             </el-radio-group>
@@ -238,7 +234,7 @@ const formData = reactive({
   answer: '',
   analysis: '',
   difficulty: 1,
-  score: 5.0
+  score: 5.0,
 })
 
 const formRules = {
@@ -247,10 +243,10 @@ const formRules = {
   difficulty: [{ required: true, message: '请选择难度', trigger: 'change' }],
   title: [
     { required: true, message: '请输入题目', trigger: 'blur' },
-    { min: 2, max: 500, message: '长度在 2 到 500 个字符', trigger: 'blur' }
+    { min: 2, max: 500, message: '长度在 2 到 500 个字符', trigger: 'blur' },
   ],
   answer: [{ required: true, message: '请输入答案', trigger: 'blur' }],
-  score: [{ required: true, message: '请输入分值', trigger: 'blur' }]
+  score: [{ required: true, message: '请输入分值', trigger: 'blur' }],
 }
 
 // 单选题选项
@@ -258,7 +254,7 @@ const singleChoiceOptions = ref([
   { key: 'A', value: '' },
   { key: 'B', value: '' },
   { key: 'C', value: '' },
-  { key: 'D', value: '' }
+  { key: 'D', value: '' },
 ])
 
 // 多选题选项
@@ -266,7 +262,7 @@ const multipleChoiceOptions = ref([
   { key: 'A', value: '' },
   { key: 'B', value: '' },
   { key: 'C', value: '' },
-  { key: 'D', value: '' }
+  { key: 'D', value: '' },
 ])
 
 // 多选题答案
@@ -316,12 +312,12 @@ const loadQuestionDetail = async (id) => {
         if (formData.questionType === 1) {
           singleChoiceOptions.value = Object.keys(options).map((key) => ({
             key,
-            value: options[key]
+            value: options[key],
           }))
         } else if (formData.questionType === 2) {
           multipleChoiceOptions.value = Object.keys(options).map((key) => ({
             key,
-            value: options[key]
+            value: options[key],
           }))
           multipleAnswers.value = formData.answer.split(',')
         }
@@ -347,7 +343,7 @@ const handleQuestionTypeChange = () => {
       { key: 'A', value: '' },
       { key: 'B', value: '' },
       { key: 'C', value: '' },
-      { key: 'D', value: '' }
+      { key: 'D', value: '' },
     ]
     if (formData.questionType === 1) {
       singleChoiceOptions.value = options

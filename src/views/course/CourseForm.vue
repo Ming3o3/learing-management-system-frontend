@@ -1,6 +1,6 @@
 <template>
   <div class="course-form">
-    <el-card>
+    <el-card class="neon-card">
       <template #header>
         <div class="card-header">
           <span>{{ isEdit ? '编辑课程' : '新增课程' }}</span>
@@ -172,7 +172,7 @@ const loadCourseDetail = async () => {
     Object.assign(courseForm, {
       ...data,
       startDate: data.startTime,
-      endDate: data.endTime
+      endDate: data.endTime,
     })
   } catch (error) {
     console.error('Load course detail failed:', error)
@@ -189,7 +189,7 @@ const handleSubmit = async () => {
     const submitData = {
       ...courseForm,
       startTime: courseForm.startDate,
-      endTime: courseForm.endDate
+      endTime: courseForm.endDate,
     }
 
     if (isEdit.value) {
@@ -221,5 +221,68 @@ const handleCancel = () => {
 .card-header {
   font-size: 18px;
   font-weight: 600;
+  color: #e7f6ff;
+  letter-spacing: 0.6px;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.35);
+}
+
+.neon-card {
+  background: rgba(20, 35, 70, 0.75);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    0 0 15px rgba(0, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+:deep(.el-card__header) {
+  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.1), transparent);
+}
+
+:deep(.el-form-item__label) {
+  color: #b9dcff;
+}
+
+:deep(.el-input__wrapper),
+:deep(.el-textarea__inner),
+:deep(.el-select__wrapper),
+:deep(.el-input-number),
+:deep(.el-date-editor) {
+  background: rgba(10, 20, 40, 0.7);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.08);
+}
+
+:deep(.el-input__inner),
+:deep(.el-textarea__inner) {
+  color: #e9fbff;
+}
+
+:deep(.el-select__selected-item) {
+  color: #e9fbff;
+}
+
+:deep(.el-input-number__decrease),
+:deep(.el-input-number__increase) {
+  background: rgba(8, 20, 40, 0.9);
+  color: #9edbff;
+  border: 1px solid rgba(0, 229, 255, 0.25);
+}
+
+:deep(.el-input-number__decrease:hover),
+:deep(.el-input-number__increase:hover) {
+  color: #8fefff;
+  border-color: rgba(0, 229, 255, 0.5);
+}
+
+:deep(.el-radio__label) {
+  color: #cfe9ff;
+}
+
+:deep(.el-radio__input.is-checked .el-radio__inner) {
+  border-color: #00e5ff;
+  background: #00e5ff;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
 }
 </style>

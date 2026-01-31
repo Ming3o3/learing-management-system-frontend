@@ -1,5 +1,5 @@
 <template>
-  <div class="take-exam">
+  <div class="take-exam neon-module">
     <el-row :gutter="20">
       <!-- 左侧：考试题目 -->
       <el-col :xs="24" :lg="16">

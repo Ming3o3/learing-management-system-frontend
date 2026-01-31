@@ -47,48 +47,48 @@ const props = defineProps({
   // 上传地址
   action: {
     type: String,
-    default: '/api/upload'
+    default: '/api/upload',
   },
   // 附加数据
   data: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
   // 是否支持多选
   multiple: {
     type: Boolean,
-    default: false
+    default: false,
   },
   // 最大上传数量
   limit: {
     type: Number,
-    default: 5
+    default: 5,
   },
   // 文件列表
   modelValue: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   // 接受的文件类型
   accept: {
     type: String,
-    default: '*'
+    default: '*',
   },
   // 是否自动上传
   autoUpload: {
     type: Boolean,
-    default: true
+    default: true,
   },
   // 文件大小限制(MB)
   maxSize: {
     type: Number,
-    default: 10
+    default: 10,
   },
   // 提示文本
   tip: {
     type: String,
-    default: ''
-  }
+    default: '',
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'success', 'error'])
@@ -101,7 +101,7 @@ const uploadUrl = computed(() => {
 
 const headers = computed(() => {
   return {
-    Authorization: `Bearer ${getToken()}`
+    Authorization: `Bearer ${getToken()}`,
   }
 })
 
@@ -113,7 +113,7 @@ const fileList = computed({
   },
   set(val) {
     emit('update:modelValue', val)
-  }
+  },
 })
 
 const handlePreview = (file) => {
@@ -157,5 +157,37 @@ const submitUpload = () => {
 <style scoped>
 .upload-container {
   width: 100%;
+}
+
+:deep(.el-upload .el-button) {
+  background: rgba(0, 229, 255, 0.2);
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  color: #8fefff;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+}
+
+:deep(.el-upload .el-button:hover) {
+  background: rgba(0, 229, 255, 0.28);
+  border-color: rgba(0, 229, 255, 0.65);
+  color: #e9fbff;
+}
+
+:deep(.el-upload__tip) {
+  color: rgba(201, 233, 255, 0.8);
+}
+
+:deep(.el-upload-list__item) {
+  background: rgba(8, 20, 40, 0.7);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: 6px;
+}
+
+:deep(.el-upload-list__item-name) {
+  color: #cfe9ff;
+}
+
+:deep(.el-upload-list__item-status-label),
+:deep(.el-upload-list__item .el-icon) {
+  color: #8fefff;
 }
 </style>

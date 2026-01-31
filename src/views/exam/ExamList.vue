@@ -1,5 +1,5 @@
 <template>
-  <div class="exam-list">
+  <div class="exam-list neon-module">
     <el-card class="search-card">
       <el-form :inline="true" :model="searchForm">
         <el-form-item label="课程">
@@ -77,13 +77,13 @@ const loading = ref(false)
 const myCourses = ref([])
 
 const searchForm = reactive({
-  courseId: null
+  courseId: null,
 })
 
 const pagination = reactive({
   pageNum: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
 })
 
 const tableData = ref([])
@@ -108,7 +108,7 @@ const loadExamList = async () => {
     const res = await getExamList({
       ...searchForm,
       pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
     })
     tableData.value = res.data.list
     pagination.total = res.data.total

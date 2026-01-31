@@ -1,6 +1,6 @@
 <template>
   <div class="homework-form">
-    <el-card>
+    <el-card class="neon-card">
       <template #header>
         <div class="card-header">
           <span>{{ isEdit ? '编辑作业' : '发布作业' }}</span>
@@ -85,14 +85,14 @@ const homeworkForm = reactive({
   title: '',
   content: '',
   deadline: '',
-  attachments: []
+  attachments: [],
 })
 
 const formRules = {
   courseId: [required],
   title: [required],
   content: [required],
-  deadline: [required]
+  deadline: [required],
 }
 
 onMounted(async () => {
@@ -129,7 +129,7 @@ const handleSubmit = async () => {
 
     const formData = {
       ...homeworkForm,
-      fileIds: homeworkForm.attachments.map(f => f.id)
+      fileIds: homeworkForm.attachments.map((f) => f.id),
     }
 
     if (isEdit.value) {
@@ -160,6 +160,63 @@ const handleCancel = () => {
 
 .card-header {
   font-size: 18px;
+  font-weight: 600;
+  color: #e7f6ff;
+  letter-spacing: 0.6px;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.35);
+}
+
+.neon-card {
+  background: rgba(20, 35, 70, 0.75);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    0 0 15px rgba(0, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+:deep(.el-card__header) {
+  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.1), transparent);
+}
+
+:deep(.el-form-item__label) {
+  color: #b9dcff;
+}
+
+:deep(.el-input__wrapper),
+:deep(.el-textarea__inner),
+:deep(.el-select__wrapper),
+:deep(.el-date-editor) {
+  background: rgba(10, 20, 40, 0.7);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.08);
+}
+
+:deep(.el-input__inner),
+:deep(.el-textarea__inner),
+:deep(.el-select__placeholder),
+:deep(.el-select__selected-item) {
+  color: #e9fbff;
+}
+
+:deep(.el-select-dropdown__wrap) {
+  background: rgba(8, 20, 40, 0.98);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+}
+
+:deep(.el-select-dropdown__item) {
+  color: #b9dcff;
+}
+
+:deep(.el-select-dropdown__item.is-hovering) {
+  background: rgba(0, 229, 255, 0.12);
+  color: #e9fbff;
+}
+
+:deep(.el-select-dropdown__item.is-selected) {
+  background: rgba(0, 229, 255, 0.2);
+  color: #7de7ff;
   font-weight: 600;
 }
 </style>

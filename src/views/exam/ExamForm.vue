@@ -1,5 +1,5 @@
 <template>
-  <div class="exam-form">
+  <div class="exam-form neon-module">
     <el-card>
       <template #header>
         <div class="card-header">
@@ -97,19 +97,34 @@
             <el-form-item label="分值">
               <el-input-number v-model="question.score" :min="1" :max="50" />
             </el-form-item>
-            <el-form-item v-if="question.type !== 'SHORT_ANSWER' && question.type !== 'FILL_BLANK'" label="选项">
+            <el-form-item
+              v-if="question.type !== 'SHORT_ANSWER' && question.type !== 'FILL_BLANK'"
+              label="选项"
+            >
               <div class="options">
-                <div v-for="(option, optIndex) in question.options" :key="optIndex" class="option-item">
+                <div
+                  v-for="(option, optIndex) in question.options"
+                  :key="optIndex"
+                  class="option-item"
+                >
                   <el-input v-model="option.content" placeholder="选项内容" />
                   <el-checkbox v-model="option.isCorrect">正确答案</el-checkbox>
-                  <el-button type="danger" size="small" text @click="removeOption(question, optIndex)">
+                  <el-button
+                    type="danger"
+                    size="small"
+                    text
+                    @click="removeOption(question, optIndex)"
+                  >
                     删除
                   </el-button>
                 </div>
                 <el-button size="small" @click="addOption(question)">添加选项</el-button>
               </div>
             </el-form-item>
-            <el-form-item v-if="question.type === 'FILL_BLANK' || question.type === 'SHORT_ANSWER'" label="参考答案">
+            <el-form-item
+              v-if="question.type === 'FILL_BLANK' || question.type === 'SHORT_ANSWER'"
+              label="参考答案"
+            >
               <el-input v-model="question.answer" type="textarea" :rows="2" />
             </el-form-item>
           </div>
@@ -152,7 +167,7 @@ const examForm = reactive({
   startTime: '',
   endTime: '',
   description: '',
-  questions: []
+  questions: [],
 })
 
 const formRules = {
@@ -162,7 +177,7 @@ const formRules = {
   totalScore: [required],
   passingScore: [required],
   startTime: [required],
-  endTime: [required]
+  endTime: [required],
 }
 
 onMounted(async () => {
@@ -197,9 +212,9 @@ const handleAddQuestion = () => {
     score: 5,
     options: [
       { content: '', isCorrect: false },
-      { content: '', isCorrect: false }
+      { content: '', isCorrect: false },
     ],
-    answer: ''
+    answer: '',
   })
 }
 

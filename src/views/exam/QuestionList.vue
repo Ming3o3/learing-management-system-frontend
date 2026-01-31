@@ -1,5 +1,5 @@
 <template>
-  <div class="question-list">
+  <div class="question-list neon-module">
     <!-- 搜索栏 -->
     <el-card class="search-card">
       <el-form :inline="true" :model="searchForm" @submit.prevent="handleSearch">
@@ -71,11 +71,7 @@
         <el-icon><Plus /></el-icon>
         新增试题
       </el-button>
-      <el-button
-        type="danger"
-        :disabled="selectedIds.length === 0"
-        @click="handleBatchDelete"
-      >
+      <el-button type="danger" :disabled="selectedIds.length === 0" @click="handleBatchDelete">
         <el-icon><Delete /></el-icon>
         批量删除
       </el-button>
@@ -180,13 +176,13 @@ const searchForm = reactive({
   courseId: null,
   questionType: null,
   difficulty: null,
-  title: ''
+  title: '',
 })
 
 const pagination = reactive({
   pageNum: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
 })
 
 const viewDialogVisible = ref(false)
@@ -223,7 +219,7 @@ const loadQuestionList = async () => {
     const params = {
       ...searchForm,
       pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
     }
     // 如果是教师角色，只查询自己创建的试题
     if (isTeacher.value) {
@@ -291,7 +287,7 @@ const handleDelete = async (row) => {
     await ElMessageBox.confirm('确定要删除该试题吗？此操作不可恢复', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     const res = await deleteQuestion(row.id)
@@ -322,7 +318,7 @@ const handleBatchDelete = async () => {
     await ElMessageBox.confirm(`确定要删除选中的 ${selectedIds.value.length} 道试题吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     const res = await deleteQuestionBatch(selectedIds.value)

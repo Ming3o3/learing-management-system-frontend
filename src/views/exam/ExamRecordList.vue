@@ -1,5 +1,5 @@
 <template>
-  <div class="exam-record-list">
+  <div class="exam-record-list neon-module">
     <el-card>
       <template #header>
         <span>{{ isTeacher ? '考试记录管理' : '我的考试记录' }}</span>
@@ -157,7 +157,13 @@
     </el-card>
 
     <!-- 查看答题详情对话框 -->
-    <el-dialog v-model="viewDialogVisible" title="答题详情" width="900px" top="5vh">
+    <el-dialog
+      v-model="viewDialogVisible"
+      title="答题详情"
+      width="900px"
+      top="5vh"
+      class="answer-detail-dialog"
+    >
       <div v-loading="detailLoading">
         <el-descriptions :column="2" border style="margin-bottom: 20px">
           <el-descriptions-item label="试卷名称">
@@ -479,6 +485,86 @@ const getQuestionTypeText = (type) => {
 }
 
 .answer-item .question-content strong {
-  color: #303133;
+  color: #9fe8ff;
+}
+
+:deep(.answer-detail-dialog) {
+  background: rgba(17, 32, 69, 0.95);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+:deep(.answer-detail-dialog .el-dialog__title) {
+  color: #00e5ff;
+}
+
+:deep(.answer-detail-dialog .el-dialog__headerbtn .el-dialog__close) {
+  color: #a0cfff;
+}
+
+:deep(.answer-detail-dialog .el-dialog__body) {
+  color: #e7f6ff;
+  background: rgba(10, 24, 48, 0.6);
+}
+
+:deep(.answer-detail-dialog .el-divider) {
+  border-color: rgba(0, 229, 255, 0.2);
+}
+
+:deep(.answer-detail-dialog .el-descriptions) {
+  background: rgba(10, 24, 48, 0.6);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+}
+
+:deep(.answer-detail-dialog .el-descriptions__cell) {
+  border-color: rgba(0, 229, 255, 0.2) !important;
+}
+
+:deep(.answer-detail-dialog .el-descriptions__label) {
+  background: rgba(12, 26, 52, 0.9);
+  color: #cfefff;
+}
+
+:deep(.answer-detail-dialog .el-descriptions__content) {
+  background: rgba(8, 20, 40, 0.9);
+  color: #e7f6ff;
+}
+
+:deep(.answer-detail-dialog .el-descriptions__content.is-bordered-content) {
+  background: rgba(8, 20, 40, 0.9);
+}
+
+:deep(.answer-detail-dialog .el-descriptions__label.is-bordered-label) {
+  background: rgba(12, 26, 52, 0.9);
+}
+
+:deep(.answer-detail-dialog .el-descriptions__cell) {
+  background: transparent;
+}
+
+:deep(.answer-detail-dialog .el-card) {
+  background: rgba(12, 24, 48, 0.75);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+}
+
+:deep(.answer-detail-dialog .el-card__header) {
+  background: rgba(18, 36, 72, 0.85);
+  border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+}
+
+:deep(.answer-detail-dialog .el-card__body) {
+  color: #e7f6ff;
+}
+
+:deep(.answer-detail-dialog .el-divider__text) {
+  color: #9fe8ff;
+  background: rgba(17, 32, 69, 0.95);
+}
+
+:deep(.answer-detail-dialog .el-tag) {
+  border-radius: 4px;
+}
+
+:deep(.answer-detail-dialog .el-empty__description) {
+  color: rgba(231, 246, 255, 0.7);
 }
 </style>

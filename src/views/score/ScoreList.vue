@@ -1,5 +1,5 @@
 <template>
-  <div class="score-list">
+  <div class="score-list neon-module">
     <el-card class="search-card">
       <el-form :inline="true" :model="searchForm">
         <el-form-item label="课程">
@@ -76,7 +76,7 @@
     </el-card>
 
     <!-- 统计对话框 -->
-    <el-dialog v-model="statisticsVisible" title="成绩统计" width="800px">
+    <el-dialog v-model="statisticsVisible" title="成绩统计" width="800px" class="score-dialog">
       <div class="statistics">
         <el-row :gutter="20">
           <el-col :span="6">
@@ -118,13 +118,13 @@ const courses = ref([])
 
 const searchForm = reactive({
   courseId: null,
-  studentName: ''
+  studentName: '',
 })
 
 const pagination = reactive({
   pageNum: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
 })
 
 const tableData = ref([])
@@ -133,7 +133,7 @@ const statistics = reactive({
   average: 0,
   max: 0,
   min: 0,
-  passingRate: 0
+  passingRate: 0,
 })
 
 onMounted(async () => {
@@ -156,7 +156,7 @@ const loadScoreList = async () => {
     const res = await getScoreList({
       ...searchForm,
       pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
     })
     tableData.value = res.data.list
     pagination.total = res.data.total
@@ -175,7 +175,7 @@ const handleSearch = () => {
 const handleReset = () => {
   Object.assign(searchForm, {
     courseId: null,
-    studentName: ''
+    studentName: '',
   })
   handleSearch()
 }
@@ -199,11 +199,11 @@ const handleExport = async () => {
 
 const handleStatistics = () => {
   // 计算统计数据
-  const scores = tableData.value.map(item => item.score)
+  const scores = tableData.value.map((item) => item.score)
   statistics.average = scores.reduce((a, b) => a + b, 0) / scores.length
   statistics.max = Math.max(...scores)
   statistics.min = Math.min(...scores)
-  statistics.passingRate = (scores.filter(s => s >= 60).length / scores.length) * 100
+  statistics.passingRate = (scores.filter((s) => s >= 60).length / scores.length) * 100
 
   statisticsVisible.value = true
 }
@@ -242,12 +242,30 @@ const handleStatistics = () => {
 .chart {
   text-align: center;
   padding: 40px;
-  background-color: #f5f7fa;
+  background-color: rgba(8, 20, 40, 0.75);
   border-radius: 4px;
 }
 
 .placeholder {
-  color: #909399;
+  color: #a0cfff;
   font-size: 14px;
+}
+
+:deep(.score-dialog) {
+  background: rgba(17, 32, 69, 0.95);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+:deep(.score-dialog .el-dialog__title) {
+  color: #00e5ff;
+}
+
+:deep(.score-dialog .el-dialog__headerbtn .el-dialog__close) {
+  color: #a0cfff;
+}
+
+:deep(.score-dialog .el-dialog__body) {
+  color: #e7f6ff;
+  background: rgba(10, 24, 48, 0.6);
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="paper-form">
+  <div class="paper-form neon-module">
     <el-card>
       <template #header>
         <span>{{ isEdit ? '编辑试卷' : '新增试卷' }}</span>
@@ -154,14 +154,14 @@ const formData = reactive({
   endTime: '',
   passScore: 60,
   allowViewAnswer: 0,
-  status: 0
+  status: 0,
 })
 
 const formRules = {
   courseId: [{ required: true, message: '请选择课程', trigger: 'change' }],
   paperName: [
     { required: true, message: '请输入试卷名称', trigger: 'blur' },
-    { min: 2, max: 100, message: '长度在 2 到 100 个字符', trigger: 'blur' }
+    { min: 2, max: 100, message: '长度在 2 到 100 个字符', trigger: 'blur' },
   ],
   totalScore: [{ required: true, message: '请输入总分', trigger: 'blur' }],
   duration: [{ required: true, message: '请输入考试时长', trigger: 'blur' }],
@@ -176,10 +176,10 @@ const formRules = {
           callback()
         }
       },
-      trigger: 'change'
-    }
+      trigger: 'change',
+    },
   ],
-  passScore: [{ required: true, message: '请输入及格分数', trigger: 'blur' }]
+  passScore: [{ required: true, message: '请输入及格分数', trigger: 'blur' }],
 }
 
 onMounted(async () => {

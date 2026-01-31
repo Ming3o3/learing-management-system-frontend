@@ -1,5 +1,5 @@
 <template>
-  <div class="student-exam">
+  <div class="student-exam neon-module">
     <el-card v-loading="loading">
       <template #header>
         <div class="header">

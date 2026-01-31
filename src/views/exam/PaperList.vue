@@ -1,5 +1,5 @@
 <template>
-  <div class="paper-list">
+  <div class="paper-list neon-module">
     <!-- 搜索栏 -->
     <el-card class="search-card">
       <el-form :inline="true" :model="searchForm" @submit.prevent="handleSearch">
@@ -123,7 +123,12 @@
     </el-card>
 
     <!-- 组卷对话框 -->
-    <el-dialog v-model="composeDialogVisible" title="组卷" width="800px" @close="handleComposeClose">
+    <el-dialog
+      v-model="composeDialogVisible"
+      title="组卷"
+      width="800px"
+      @close="handleComposeClose"
+    >
       <el-form :model="composeForm" label-width="100px">
         <el-form-item label="课程">
           <el-select
@@ -192,7 +197,7 @@ import {
   publishPaper,
   addQuestionsToPaper,
   clearPaperQuestions,
-  getQuestionByPaper
+  getQuestionByPaper,
 } from '@/api/exam'
 import { getQuestionByCourse } from '@/api/exam'
 import { getCourseList } from '@/api/course'
@@ -211,13 +216,13 @@ const tableData = ref([])
 const searchForm = reactive({
   paperName: '',
   courseId: null,
-  status: null
+  status: null,
 })
 
 const pagination = reactive({
   pageNum: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
 })
 
 const composeDialogVisible = ref(false)
@@ -225,7 +230,7 @@ const composeForm = reactive({
   paperId: null,
   courseId: null,
   questionType: null,
-  selectedQuestions: []
+  selectedQuestions: [],
 })
 const availableQuestions = ref([])
 
@@ -260,7 +265,7 @@ const loadPaperList = async () => {
     const params = {
       ...searchForm,
       pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
     }
     // 如果是教师角色，只查询自己创建的试卷
     if (isTeacher.value) {
@@ -335,7 +340,7 @@ const handlePublish = async (row) => {
     await ElMessageBox.confirm('确定要发布该试卷吗？发布后将无法修改', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     const res = await publishPaper(row.id)
@@ -359,7 +364,7 @@ const handleDelete = async (row) => {
     await ElMessageBox.confirm('确定要删除该试卷吗？此操作不可恢复', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     const res = await deletePaper(row.id)
@@ -420,7 +425,7 @@ const loadQuestions = async () => {
         id: q.id,
         title: q.title,
         score: q.score,
-        questionType: q.questionType
+        questionType: q.questionType,
       }))
     }
   } catch (error) {
@@ -461,7 +466,7 @@ const handleComposeSubmit = async () => {
     // 再添加新选择的试题
     const res = await addQuestionsToPaper({
       paperId: composeForm.paperId,
-      questionIds: composeForm.selectedQuestions
+      questionIds: composeForm.selectedQuestions,
     })
 
     if (res.code === 200) {

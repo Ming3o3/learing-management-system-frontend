@@ -1,5 +1,5 @@
 <template>
-  <div class="paper-detail">
+  <div class="paper-detail neon-module">
     <el-card v-loading="loading">
       <template #header>
         <div class="header">
@@ -100,7 +100,7 @@ const paperDetail = reactive({
   startTime: '',
   endTime: '',
   allowViewAnswer: 0,
-  description: ''
+  description: '',
 })
 
 const questionList = ref([])
@@ -154,7 +154,7 @@ const handleRemoveQuestion = async (row) => {
     await ElMessageBox.confirm('确定要从试卷中移除该试题吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     const res = await removeQuestionFromPaper(paperDetail.id, row.id)
@@ -182,11 +182,30 @@ const handleBack = () => {
 <style scoped>
 .paper-detail {
   padding: 20px;
+  --el-text-color-primary: #e9fbff;
+  --el-text-color-regular: #e9fbff;
+  --el-text-color-secondary: rgba(233, 251, 255, 0.78);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+:deep(.el-descriptions__label) {
+  color: #e9fbff;
+}
+
+:deep(.el-descriptions__content) {
+  color: #e9fbff;
+}
+
+:deep(.el-descriptions__cell.el-descriptions__content.is-bordered-content) {
+  color: #e9fbff;
+}
+
+:deep(.el-descriptions__cell.el-descriptions__label.is-bordered-label) {
+  color: #e9fbff;
 }
 </style>

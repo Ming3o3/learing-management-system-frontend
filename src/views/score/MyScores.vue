@@ -1,5 +1,5 @@
 <template>
-  <div class="score-list">
+  <div class="score-list neon-module">
     <el-card>
       <template #header>
         <div class="card-header">

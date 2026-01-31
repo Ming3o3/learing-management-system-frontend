@@ -444,6 +444,34 @@ const loadDashboardData = async () => {
   transition: background-color 0.2s;
 }
 
+/* 待办事项标签：科技风格（对齐用户管理标签风格） */
+.todo-item :deep(.el-tag) {
+  border-radius: 6px;
+  padding: 0 8px;
+  height: 22px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  background: rgba(0, 229, 255, 0.12);
+  color: #8fefff;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+}
+
+.todo-item :deep(.el-tag--warning) {
+  border-color: rgba(255, 204, 102, 0.65);
+  background: rgba(255, 204, 102, 0.12);
+  color: #ffd37a;
+  box-shadow: 0 0 10px rgba(255, 204, 102, 0.35);
+}
+
+.todo-item :deep(.el-tag--danger) {
+  border-color: rgba(255, 90, 120, 0.65);
+  background: rgba(255, 90, 120, 0.12);
+  color: #ff9ab5;
+  box-shadow: 0 0 10px rgba(255, 90, 120, 0.35);
+}
+
 .todo-item:hover {
   background-color: rgba(0, 229, 255, 0.05);
 }

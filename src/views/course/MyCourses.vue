@@ -1,5 +1,5 @@
 <template>
-  <div class="my-courses">
+  <div class="my-courses neon-module">
     <el-card v-loading="loading">
       <template #header>
         <div class="card-header">
@@ -132,7 +132,7 @@ const handleViewExam = (course) => {
 .course-title {
   margin: 0;
   font-size: 18px;
-  color: #303133;
+  color: #e7f6ff;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -142,7 +142,7 @@ const handleViewExam = (course) => {
 
 .course-info {
   font-size: 14px;
-  color: #606266;
+  color: #b9dcff;
 }
 
 .course-info p {
@@ -161,12 +161,20 @@ const handleViewExam = (course) => {
   justify-content: space-between;
   margin-bottom: 8px;
   font-size: 14px;
-  color: #606266;
+  color: #cfe9ff;
 }
 
 .course-actions {
   display: flex;
   gap: 10px;
   margin-top: 15px;
+}
+
+:deep(.my-courses .el-progress__text) {
+  color: #cfe9ff;
+}
+
+:deep(.my-courses .el-progress-bar__outer) {
+  background-color: rgba(255, 255, 255, 0.08);
 }
 </style>
