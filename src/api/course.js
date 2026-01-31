@@ -11,7 +11,7 @@ import request from '@/utils/request'
 export function getCourseById(id) {
   return request({
     url: `/course/${id}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -24,7 +24,18 @@ export function getCourseList(params) {
   return request({
     url: '/course/list',
     method: 'get',
-    params
+    params,
+  })
+}
+
+/**
+ * 查询所有课程（不分页）
+ * @returns {Promise}
+ */
+export function getAllCourses() {
+  return request({
+    url: '/course/all',
+    method: 'get',
   })
 }
 
@@ -37,7 +48,7 @@ export function getCoursePage(params) {
   return request({
     url: '/course/page',
     method: 'get',
-    params
+    params,
   })
 }
 
@@ -49,7 +60,7 @@ export function getCoursePage(params) {
 export function getCoursesByTeacher(teacherId) {
   return request({
     url: `/course/teacher/${teacherId}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -62,7 +73,7 @@ export function createCourse(data) {
   return request({
     url: '/course',
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -76,7 +87,7 @@ export function updateCourse(id, data) {
   return request({
     url: '/course',
     method: 'put',
-    data: { ...data, id }
+    data: { ...data, id },
   })
 }
 
@@ -88,7 +99,7 @@ export function updateCourse(id, data) {
 export function deleteCourse(id) {
   return request({
     url: `/course/${id}`,
-    method: 'delete'
+    method: 'delete',
   })
 }
 
@@ -100,7 +111,7 @@ export function deleteCourse(id) {
 export function publishCourse(id) {
   return request({
     url: `/course/publish/${id}`,
-    method: 'put'
+    method: 'put',
   })
 }
 
@@ -112,7 +123,7 @@ export function publishCourse(id) {
 export function getCourseContent(courseId) {
   return request({
     url: `/course/${courseId}/content`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -125,7 +136,7 @@ export function createCourseContent(data) {
   return request({
     url: '/course/content',
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -138,7 +149,7 @@ export function updateCourseContent(data) {
   return request({
     url: '/course/content',
     method: 'put',
-    data
+    data,
   })
 }
 
@@ -150,7 +161,7 @@ export function updateCourseContent(data) {
 export function deleteCourseContent(id) {
   return request({
     url: `/course/content/${id}`,
-    method: 'delete'
+    method: 'delete',
   })
 }
 
@@ -163,7 +174,7 @@ export function enrollCourse(courseId) {
   return request({
     url: '/course/enroll',
     method: 'post',
-    data: { courseId }
+    data: { courseId },
   })
 }
 
@@ -175,7 +186,7 @@ export function enrollCourse(courseId) {
 export function dropCourse(courseId) {
   return request({
     url: `/course/drop/${courseId}`,
-    method: 'delete'
+    method: 'delete',
   })
 }
 
@@ -186,7 +197,7 @@ export function dropCourse(courseId) {
 export function getMyEnrollments() {
   return request({
     url: '/course/my-courses',
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -198,7 +209,7 @@ export function getMyEnrollments() {
 export function getCourseStudents(courseId) {
   return request({
     url: `/course/${courseId}/students`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -211,6 +222,6 @@ export function getCourseStudents(courseId) {
 export function removeStudentFromCourse(courseId, studentId) {
   return request({
     url: `/course/${courseId}/students/${studentId}`,
-    method: 'delete'
+    method: 'delete',
   })
 }
