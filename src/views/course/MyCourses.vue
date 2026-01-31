@@ -41,7 +41,11 @@
                 <span>学习进度</span>
                 <span>{{ course.progress || 0 }}%</span>
               </div>
-              <el-progress :percentage="course.progress || 0" :stroke-width="8" />
+              <el-progress
+                :percentage="course.progress || 0"
+                :stroke-width="8"
+                :show-text="false"
+              />
             </div>
 
             <div class="course-actions">
