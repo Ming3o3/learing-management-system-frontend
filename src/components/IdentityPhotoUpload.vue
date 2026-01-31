@@ -9,12 +9,7 @@
       </template>
 
       <!-- 说明信息 -->
-      <el-alert
-        title="身份验证说明"
-        type="info"
-        :closable="false"
-        style="margin-bottom: 20px"
-      >
+      <el-alert title="身份验证说明" type="info" :closable="false" style="margin-bottom: 20px">
         <div class="alert-content">
           <p>为确保考试公平，请上传本人清晰的正面照片用于AI人脸识别：</p>
           <ul>
@@ -32,7 +27,11 @@
         <el-result icon="success" title="身份验证已完成" sub-title="您已成功上传身份照片">
           <template #extra>
             <div class="photo-preview">
-              <img v-if="proctorStore.identityPhotoUrl" :src="proctorStore.identityPhotoUrl" alt="身份照片" />
+              <img
+                v-if="proctorStore.identityPhotoUrl"
+                :src="proctorStore.identityPhotoUrl"
+                alt="身份照片"
+              />
             </div>
             <el-button type="primary" @click="handleStartExam">开始考试</el-button>
             <el-button @click="handleReupload">重新上传</el-button>
@@ -139,14 +138,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  User,
-  Upload,
-  Camera,
-  Delete,
-  Check,
-  RefreshRight,
-} from '@element-plus/icons-vue'
+import { User, Upload, Camera, Delete, Check, RefreshRight } from '@element-plus/icons-vue'
 import { useProctorStore } from '@/stores/proctor'
 
 // ========== Props & Emits ==========
@@ -361,15 +353,11 @@ function handleStartExam() {
  */
 async function handleReupload() {
   try {
-    await ElMessageBox.confirm(
-      '重新上传将删除之前的身份照片，确定要继续吗？',
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    )
+    await ElMessageBox.confirm('重新上传将删除之前的身份照片，确定要继续吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
 
     await proctorStore.deleteIdentity(props.examId, props.studentId)
     ElMessage.success('已清除旧照片，请重新上传')
@@ -420,6 +408,7 @@ onUnmounted(() => {
     p {
       margin: 0 0 8px 0;
       font-weight: 500;
+      color: #ffffff;
     }
 
     ul {
@@ -428,7 +417,7 @@ onUnmounted(() => {
 
       li {
         margin: 4px 0;
-        color: #606266;
+        color: #ffffff;
       }
     }
   }

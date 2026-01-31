@@ -563,6 +563,22 @@ watch(
   z-index: 10;
 }
 
+:deep(.camera-status .el-tag),
+:deep(.connection-status .el-tag) {
+  font-size: 14px;
+  padding: 15px;
+  border-radius: 12px;
+  border-width: 3px;
+  color: #eaf4ff;
+  box-shadow: 0 0 10px rgba(64, 158, 255, 0.35);
+}
+
+:deep(.camera-status .el-tag .el-icon),
+:deep(.connection-status .el-tag .el-icon) {
+  margin-right: 4px;
+  font-size: 14px;
+}
+
 .error-overlay {
   position: absolute;
   top: 50%;
@@ -574,5 +590,11 @@ watch(
 
 .proctor-stats {
   margin-top: 16px;
+}
+
+:deep(.proctor-stats),
+:deep(.proctor-stats .el-descriptions__label),
+:deep(.proctor-stats .el-descriptions__content) {
+  color: #ffffff;
 }
 </style>

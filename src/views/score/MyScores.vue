@@ -55,7 +55,7 @@ const loading = ref(false)
 const pagination = reactive({
   pageNum: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
 })
 
 const tableData = ref([])
@@ -69,7 +69,7 @@ const loadScoreList = async () => {
     loading.value = true
     const res = await getMyScores({
       pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
     })
     tableData.value = res.data.list
     pagination.total = res.data.total

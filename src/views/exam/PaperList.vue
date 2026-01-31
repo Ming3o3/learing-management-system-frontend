@@ -127,6 +127,7 @@
       v-model="composeDialogVisible"
       title="组卷"
       width="800px"
+      class="compose-dialog"
       @close="handleComposeClose"
     >
       <el-form :model="composeForm" label-width="100px">
@@ -513,5 +514,112 @@ const handleTakeExam = (row) => {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+
+/* 组卷对话框科技风格 */
+:global(.compose-dialog.el-dialog) {
+  background: rgba(10, 20, 42, 0.96) !important;
+  border: 1px solid rgba(0, 229, 255, 0.35) !important;
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.55),
+    0 0 25px rgba(0, 229, 255, 0.2) !important;
+  backdrop-filter: blur(10px);
+}
+
+:global(.compose-dialog .el-dialog__header) {
+  border-bottom: 1px solid rgba(0, 229, 255, 0.2) !important;
+  margin-right: 0;
+}
+
+:global(.compose-dialog .el-dialog__title) {
+  color: #e8f6ff !important;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
+}
+
+:global(.compose-dialog .el-dialog__close) {
+  color: #bfefff !important;
+}
+
+:global(.compose-dialog .el-dialog__body) {
+  color: #cfe9ff !important;
+}
+
+:global(.compose-dialog .el-dialog__footer) {
+  border-top: 1px solid rgba(0, 229, 255, 0.2) !important;
+}
+
+/* 对话框内表单控件 */
+:global(.compose-dialog .el-input__inner),
+:global(.compose-dialog .el-select .el-input__inner),
+:global(.compose-dialog .el-textarea__inner) {
+  background: rgba(8, 20, 40, 0.9) !important;
+  color: #e8f6ff !important;
+  border-color: rgba(0, 229, 255, 0.35) !important;
+}
+
+:global(.compose-dialog .el-input__inner::placeholder),
+:global(.compose-dialog .el-textarea__inner::placeholder) {
+  color: rgba(191, 239, 255, 0.65) !important;
+}
+
+/* Transfer 面板 */
+:global(.compose-dialog .el-transfer-panel) {
+  background: rgba(8, 20, 40, 0.92) !important;
+  border: 1px solid rgba(0, 229, 255, 0.25) !important;
+  color: #e8f6ff !important;
+}
+
+:global(.compose-dialog .el-transfer-panel__header) {
+  background: rgba(6, 16, 34, 0.95) !important;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.2) !important;
+  color: #cfe9ff !important;
+}
+
+:global(.compose-dialog .el-transfer-panel__body),
+:global(.compose-dialog .el-transfer-panel__filter) {
+  background: transparent !important;
+}
+
+:global(.compose-dialog .el-transfer-panel__item) {
+  color: #cfe9ff !important;
+}
+
+:global(.compose-dialog .el-transfer-panel .el-checkbox__label) {
+  color: #cfe9ff !important;
+}
+
+:global(.compose-dialog .el-transfer-panel .el-checkbox__label:hover) {
+  color: #ffffff !important;
+}
+
+:global(.compose-dialog .el-transfer-panel__item:hover) {
+  background: rgba(0, 229, 255, 0.08) !important;
+}
+
+:global(.compose-dialog .el-transfer-panel__list) {
+  background: transparent !important;
+}
+
+:global(.compose-dialog .el-transfer__button) {
+  background: rgba(0, 229, 255, 0.2) !important;
+  border-color: rgba(0, 229, 255, 0.35) !important;
+  color: #e8f6ff !important;
+}
+
+:global(.compose-dialog .el-transfer__button.is-disabled) {
+  opacity: 0.5;
+}
+
+/* Dialog 按钮 */
+:global(.compose-dialog .el-button) {
+  background: rgba(8, 20, 40, 0.9) !important;
+  border-color: rgba(0, 229, 255, 0.35) !important;
+  color: #e8f6ff !important;
+}
+
+:global(.compose-dialog .el-button--primary) {
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.4), rgba(189, 0, 255, 0.4)) !important;
+  border-color: rgba(0, 229, 255, 0.6) !important;
+  color: #ffffff !important;
 }
 </style>

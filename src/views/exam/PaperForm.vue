@@ -255,4 +255,97 @@ const handleCancel = () => {
 .paper-form {
   padding: 20px;
 }
+
+:deep(.paper-form .el-input__count),
+:deep(.paper-form .el-textarea__count) {
+  background: rgba(8, 20, 40, 0.9) !important;
+  color: #bfefff !important;
+  border: 1px solid rgba(0, 229, 255, 0.25) !important;
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.08) inset;
+}
+
+:deep(.paper-form .el-input__count-inner),
+:deep(.paper-form .el-textarea__count-inner) {
+  background: rgba(8, 20, 40, 0.9) !important;
+  color: #bfefff !important;
+  padding: 0 6px;
+  border-radius: 4px;
+}
+
+:deep(.paper-form .el-input__count .el-input__count-inner),
+:deep(.paper-form .el-textarea .el-input__count .el-input__count-inner) {
+  background: rgba(8, 20, 40, 0.9) !important;
+  color: #bfefff !important;
+}
+
+:deep(.paper-form .el-switch__label) {
+  color: #cfe9ff;
+}
+
+:deep(.paper-form .el-switch__label.is-active) {
+  color: #8fefff;
+}
+
+/* 由于日期选择器弹层会挂载到 body，需使用全局选择器覆盖默认白色背景 */
+:global(.el-picker-panel),
+:global(.el-date-picker),
+:global(.el-time-panel) {
+  background: rgba(6, 16, 34, 0.98) !important;
+  color: #e8f6ff !important;
+  border: 1px solid rgba(0, 229, 255, 0.35) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55) !important;
+}
+
+:global(.el-picker-panel__content),
+:global(.el-picker-panel__footer),
+:global(.el-date-picker__header),
+:global(.el-time-panel__content) {
+  background: transparent !important;
+  color: #e8f6ff !important;
+}
+
+:global(.el-picker-panel__icon-btn),
+:global(.el-date-picker__header-label),
+:global(.el-date-table th),
+:global(.el-date-table td),
+:global(.el-time-panel__btn) {
+  color: #cfe9ff !important;
+}
+
+:global(.el-date-table td.available:hover) {
+  color: #ffffff !important;
+  background-color: rgba(0, 229, 255, 0.18) !important;
+}
+
+:global(.el-date-table td.current:not(.disabled) .el-date-table-cell__text),
+:global(.el-date-table td.today .el-date-table-cell__text) {
+  color: #ffffff !important;
+  background-color: rgba(0, 229, 255, 0.45) !important;
+}
+
+:global(.el-picker-panel__footer .el-button),
+:global(.el-time-panel__footer .el-button) {
+  color: #e8f6ff !important;
+  background: rgba(8, 20, 40, 0.9) !important;
+  border-color: rgba(0, 229, 255, 0.35) !important;
+}
+
+:global(.el-picker-panel__footer .el-button.is-text),
+:global(.el-time-panel__footer .el-button.is-text) {
+  color: #bfefff !important;
+}
+
+/* 计数徽标默认使用 var(--el-fill-color-blank)，强制改为深色 */
+:global(.el-input__count),
+:global(.el-textarea__count) {
+  background: rgba(8, 20, 40, 0.9) !important;
+  color: #bfefff !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+:global(.el-input__count-inner) {
+  background: rgba(8, 20, 40, 0.9) !important;
+  color: #bfefff !important;
+}
 </style>

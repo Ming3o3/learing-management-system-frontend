@@ -619,6 +619,28 @@ const handleAutoSubmit = async (proctorData) => {
   margin: 0 auto;
 }
 
+:deep(.el-card) {
+  background: linear-gradient(180deg, rgba(12, 26, 60, 0.95), rgba(9, 20, 48, 0.95));
+  border-color: rgba(64, 158, 255, 0.25);
+  color: #e6f1ff;
+  box-shadow: 0 0 20px rgba(64, 158, 255, 0.08);
+}
+
+:deep(.el-card__header) {
+  border-bottom-color: rgba(64, 158, 255, 0.2);
+  color: #e6f1ff;
+}
+
+:deep(.el-alert) {
+  background: rgba(10, 26, 58, 0.7);
+  border-color: rgba(64, 158, 255, 0.2);
+  color: #d7e5ff;
+}
+
+:deep(.el-alert__title) {
+  color: #e6f1ff;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -646,7 +668,8 @@ const handleAutoSubmit = async (proctorData) => {
   bottom: 70px;
   width: 360px;
   max-width: calc(100vw - 48px);
-  background: #fff;
+  background: linear-gradient(180deg, rgba(12, 26, 60, 0.95), rgba(9, 20, 48, 0.95));
+  border: 1px solid rgba(64, 158, 255, 0.25);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   padding: 12px;
@@ -656,12 +679,26 @@ const handleAutoSubmit = async (proctorData) => {
 .question-nav {
   margin-bottom: 20px;
   padding: 15px;
-  background: #f5f7fa;
-  border-radius: 4px;
+  background: rgba(10, 26, 58, 0.7);
+  border: 1px solid rgba(64, 158, 255, 0.2);
+  border-radius: 6px;
+}
+
+:deep(.question-nav .el-tag) {
+  background: rgba(14, 38, 86, 0.85);
+  border-color: rgba(64, 158, 255, 0.35);
+  color: #cfe3ff;
+}
+
+:deep(.question-nav .el-tag.el-tag--success) {
+  background: rgba(24, 62, 132, 0.95);
+  border-color: rgba(64, 158, 255, 0.7);
+  color: #eaf4ff;
 }
 
 .question-content {
   margin: 30px 0;
+  color: #dbeaff;
 }
 
 .question-title {
@@ -669,8 +706,10 @@ const handleAutoSubmit = async (proctorData) => {
   line-height: 1.8;
   margin: 20px 0;
   padding: 15px;
-  background: #f5f7fa;
-  border-radius: 4px;
+  background: rgba(12, 28, 64, 0.6);
+  border: 1px solid rgba(72, 156, 255, 0.28);
+  border-radius: 6px;
+  color: #e6f1ff;
 }
 
 .answer-area {
@@ -682,27 +721,109 @@ const handleAutoSubmit = async (proctorData) => {
   display: flex;
   align-items: flex-start;
   margin: 15px 0;
-  padding: 12px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
+  padding: 16px 18px;
+  min-height: 52px;
+  border: 1px solid rgba(72, 156, 255, 0.28);
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.25s ease;
+  background: rgba(12, 28, 64, 0.6);
+  color: #cfe3ff;
+  position: relative;
+  overflow: hidden;
 }
 
 .option-item:hover {
-  background: #f5f7fa;
-  border-color: #409eff;
+  background: rgba(18, 48, 105, 0.65);
+  border-color: rgba(115, 189, 255, 0.9);
+  box-shadow: 0 0 14px rgba(64, 158, 255, 0.25);
+}
+
+.option-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 10% 50%, rgba(64, 158, 255, 0.18), transparent 55%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.option-item:hover::after {
+  opacity: 1;
+}
+
+:deep(.option-item.is-checked),
+:deep(.option-item.is-checked:hover) {
+  border-color: rgba(64, 158, 255, 1);
+  background: linear-gradient(90deg, rgba(24, 62, 132, 0.9), rgba(14, 38, 86, 0.9));
+  box-shadow: 0 0 18px rgba(64, 158, 255, 0.45);
+}
+
+:deep(.option-item.is-checked .el-radio__label),
+:deep(.option-item.is-checked .el-checkbox__label) {
+  color: #eaf4ff;
+  font-weight: 600;
+}
+
+:deep(.option-item .el-radio__inner),
+:deep(.option-item .el-checkbox__inner) {
+  border-color: rgba(122, 196, 255, 0.7);
+  background-color: rgba(9, 24, 52, 0.9);
+}
+
+:deep(.option-item.is-checked .el-radio__inner),
+:deep(.option-item.is-checked .el-checkbox__inner) {
+  border-color: #73bdff;
+  background-color: #409eff;
+  box-shadow: 0 0 8px rgba(64, 158, 255, 0.6);
+}
+
+:deep(.option-item .el-radio__label),
+:deep(.option-item .el-checkbox__label) {
+  color: #cfe3ff;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+:deep(.option-item .el-radio__inner),
+:deep(.option-item .el-checkbox__inner) {
+  width: 18px;
+  height: 18px;
+}
+
+:deep(.option-item .el-radio__inner::after) {
+  width: 8px;
+  height: 8px;
+}
+
+:deep(.option-item .el-checkbox__inner::after) {
+  height: 10px;
+  width: 5px;
 }
 
 .option-key {
   font-weight: bold;
   margin-right: 10px;
   min-width: 30px;
+  color: #9bc6ff;
 }
 
 .option-value {
   flex: 1;
   line-height: 1.6;
+  color: #dbeaff;
+}
+
+:deep(.answer-area .el-textarea__inner) {
+  background: rgba(10, 24, 52, 0.7);
+  border-color: rgba(72, 156, 255, 0.35);
+  color: #dbeaff;
+  box-shadow: inset 0 0 10px rgba(16, 48, 105, 0.35);
+}
+
+:deep(.answer-area .el-textarea__inner::placeholder) {
+  color: rgba(191, 219, 255, 0.6);
 }
 
 .nav-buttons {
@@ -711,6 +832,6 @@ const handleAutoSubmit = async (proctorData) => {
   gap: 20px;
   margin-top: 30px;
   padding: 20px 0;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid rgba(64, 158, 255, 0.2);
 }
 </style>
