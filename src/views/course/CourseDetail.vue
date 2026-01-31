@@ -39,32 +39,49 @@
     </el-card>
 
     <!-- 课程资源 -->
-    <el-card v-if="isTeacher || isAdmin" class="mt-20 neon-card">
+    <el-card class="mt-20 neon-card">
       <template #header>
         <div class="card-header">
-          <span>课程资源</span>
-          <el-button type="primary" size="small" @click="handleUploadResource">
-            上传资源
+          <span>课程资源（{{ resources.length }}个）</span>
+          <el-button type="primary" size="small" @click="handleGoToResources">
+            查看全部资源
           </el-button>
         </div>
       </template>
 
       <el-empty v-if="!resources.length" description="暂无课程资源" />
-      <el-table v-else :data="resources" border>
-        <el-table-column prop="fileName" label="文件名" min-width="180" />
-        <el-table-column prop="fileSize" label="文件大小" width="120">
-          <template #default="{ row }">{{ formatFileSize(row.fileSize) }}</template>
-        </el-table-column>
-        <el-table-column prop="uploadTime" label="上传时间" width="180" />
-        <el-table-column label="操作" width="150">
-          <template #default="{ row }">
-            <el-button type="primary" size="small" @click="handleDownload(row)">下载</el-button>
-            <el-button type="danger" size="small" @click="handleDeleteResource(row)">
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div v-else class="resource-preview">
+        <div
+          v-for="content in resources.slice(0, 5)"
+          :key="content.id"
+          class="resource-item"
+          @click="handleViewResource(content)"
+        >
+          <div class="resource-icon">
+            <el-icon v-if="content.contentType === 1"><VideoCamera /></el-icon>
+            <el-icon v-else-if="content.contentType === 2"><Document /></el-icon>
+            <el-icon v-else><Folder /></el-icon>
+          </div>
+          <div class="resource-info">
+            <div class="resource-title">{{ content.title }}</div>
+            <div class="resource-meta">
+              <el-tag size="small">{{ content.contentTypeDesc }}</el-tag>
+              <el-tag
+                v-if="content.contentType === 1"
+                size="small"
+                :type="content.hlsStatus === 1 ? 'success' : 'warning'"
+              >
+                {{ content.hlsStatusDesc }}
+              </el-tag>
+            </div>
+          </div>
+        </div>
+        <div v-if="resources.length > 5" class="view-more">
+          <el-button type="text" @click="handleGoToResources">
+            查看更多资源 ({{ resources.length - 5 }}个)
+          </el-button>
+        </div>
+      </div>
     </el-card>
 
     <!-- 学生列表 -->
@@ -101,8 +118,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { VideoCamera, Document, Folder } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { getCourseById, getCourseStudents, removeStudentFromCourse } from '@/api/course'
+import { getContentList } from '@/api/content'
 import { formatFileSize } from '@/utils'
 
 const router = useRouter()
@@ -144,8 +163,21 @@ const loadCourseDetail = async () => {
 }
 
 const loadResources = async () => {
-  // TODO: 调用API加载课程资源
-  resources.value = []
+  try {
+    const res = await getContentList(route.params.id)
+    let list = res.data || []
+
+    // 学生只能看到已发布的内容
+    if (!isTeacher.value && !isAdmin.value) {
+      list = list.filter((item) => item.status === 1)
+    }
+
+    resources.value = list
+    console.log('[CourseDetail] 加载资源列表成功:', list.length)
+  } catch (error) {
+    console.error('加载课程资源失败:', error)
+    resources.value = []
+  }
 }
 
 const loadStudents = async () => {
@@ -165,8 +197,17 @@ const handleBack = () => {
   router.back()
 }
 
+const handleGoToResources = () => {
+  router.push({ name: 'CourseResources', params: { id: route.params.id } })
+}
+
+const handleViewResource = (content) => {
+  // 直接跳转到资源页面
+  router.push({ name: 'CourseResources', params: { id: route.params.id } })
+}
+
 const handleUploadResource = () => {
-  ElMessage.info('上传功能待实现')
+  handleGoToResources()
 }
 
 const handleDownload = (row) => {
@@ -378,5 +419,65 @@ const handleRemoveStudent = async (row) => {
 
 :deep(.el-empty__description) {
   color: rgba(231, 246, 255, 0.55);
+}
+
+.resource-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resource-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: rgba(10, 24, 52, 0.5);
+  border: 1px solid rgba(72, 156, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.resource-item:hover {
+  background: rgba(20, 40, 80, 0.6);
+  border-color: #409eff;
+  transform: translateX(5px);
+}
+
+.resource-icon {
+  font-size: 32px;
+  color: #409eff;
+  margin-right: 16px;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resource-info {
+  flex: 1;
+}
+
+.resource-title {
+  font-size: 15px;
+  color: #e7f6ff;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.resource-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.view-more {
+  text-align: center;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 229, 255, 0.15);
+}
+
+.view-more .el-button {
+  color: #409eff;
 }
 </style>

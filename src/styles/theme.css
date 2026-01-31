@@ -351,3 +351,119 @@
   color: #7de7ff;
   font-weight: 600;
 }
+
+/* 全局覆盖：输入框白色背景修复 */
+.el-input__wrapper,
+.el-dialog .el-input__wrapper,
+.el-form-item .el-input__wrapper {
+  background-color: rgba(10, 24, 52, 0.7) !important;
+  border-color: rgba(72, 156, 255, 0.35) !important;
+  box-shadow: 0 0 0 1px rgba(72, 156, 255, 0.35) inset !important;
+}
+
+.el-input__wrapper:hover,
+.el-dialog .el-input__wrapper:hover,
+.el-form-item .el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px rgba(72, 156, 255, 0.5) inset !important;
+}
+
+.el-input__wrapper.is-focus,
+.el-dialog .el-input__wrapper.is-focus,
+.el-form-item .el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px #409eff inset !important;
+}
+
+.el-input__inner,
+.el-dialog .el-input__inner,
+.el-form-item .el-input__inner {
+  color: #dbeaff !important;
+  background-color: transparent !important;
+}
+
+.el-input__inner::placeholder,
+.el-dialog .el-input__inner::placeholder,
+.el-form-item .el-input__inner::placeholder {
+  color: rgba(191, 219, 255, 0.6) !important;
+}
+
+.el-textarea__inner {
+  background-color: rgba(10, 24, 52, 0.7) !important;
+  border-color: rgba(72, 156, 255, 0.35) !important;
+  color: #dbeaff !important;
+}
+
+.el-textarea__inner::placeholder {
+  color: rgba(191, 219, 255, 0.6) !important;
+}
+
+.el-input-number .el-input__wrapper {
+  background-color: rgba(10, 24, 52, 0.7) !important;
+}
+
+/* 输入框字数统计样式修复 */
+.el-input__count,
+.el-dialog .el-input__count,
+.el-form-item .el-input__count {
+  background-color: transparent !important;
+  color: rgba(191, 219, 255, 0.7) !important;
+}
+
+.el-input__count-inner,
+.el-dialog .el-input__count-inner,
+.el-form-item .el-input__count-inner {
+  background-color: transparent !important;
+  color: rgba(191, 219, 255, 0.7) !important;
+  line-height: normal !important;
+}
+
+.el-textarea .el-input__count {
+  background-color: rgba(10, 24, 52, 0.6) !important;
+  color: rgba(191, 219, 255, 0.8) !important;
+}
+
+/* 对话框全局样式修复 */
+.el-dialog {
+  background: rgba(10, 24, 52, 0.95) !important;
+  border: 1px solid rgba(72, 156, 255, 0.4);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(0, 255, 255, 0.2);
+}
+
+.el-dialog__header {
+  background: linear-gradient(135deg, rgba(10, 24, 52, 0.9) 0%, rgba(20, 40, 80, 0.9) 100%);
+  border-bottom: 1px solid rgba(72, 156, 255, 0.3);
+}
+
+.el-dialog__title {
+  color: #e7f6ff;
+}
+
+.el-dialog__headerbtn .el-dialog__close {
+  color: #96c2f5;
+}
+
+.el-dialog__headerbtn .el-dialog__close:hover {
+  color: #409eff;
+}
+
+.el-dialog__body {
+  background: rgba(5, 15, 35, 0.95);
+  color: #cfe9ff;
+}
+
+.el-dialog__footer {
+  background: rgba(10, 24, 52, 0.9);
+  border-top: 1px solid rgba(72, 156, 255, 0.3);
+}
+
+/* Upload 组件样式修复 */
+.el-upload-dragger {
+  background: rgba(10, 24, 52, 0.6) !important;
+  border: 2px dashed rgba(72, 156, 255, 0.5) !important;
+}
+
+.el-upload-dragger:hover {
+  border-color: #409eff !important;
+  background: rgba(20, 40, 80, 0.7) !important;
+}
