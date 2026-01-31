@@ -422,10 +422,40 @@ onMounted(() => {
 
 :deep(.el-descriptions__label) {
   width: 100px;
-  color: #e9fbff;
+  color: #ffffff !important;
+  font-weight: 600;
 }
 
 :deep(.el-descriptions__content) {
-  color: #e9fbff;
+  color: #ffffff !important;
+}
+
+:deep(.el-descriptions-item__label) {
+  color: #ffffff !important;
+}
+
+:deep(.el-descriptions-item__content) {
+  color: #ffffff !important;
+}
+
+:deep(.el-card__header) {
+  color: #ffffff;
+}
+
+.card-header span {
+  color: #ffffff;
+}
+
+.question-number {
+  color: #ffffff;
+}
+
+.question-score {
+  color: #409eff;
+  font-weight: bold;
+}
+
+.current-score {
+  color: #ffffff;
 }
 </style>
