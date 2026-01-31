@@ -109,20 +109,20 @@ const editForm = reactive({
   realName: '',
   gender: 1,
   phone: '',
-  email: ''
+  email: '',
 })
 
 const passwordForm = reactive({
   oldPassword: '',
   newPassword: '',
-  confirmPassword: ''
+  confirmPassword: '',
 })
 
 const editRules = {
   realName: [required],
   gender: [required],
   phone: [phoneRule],
-  email: [emailRule]
+  email: [emailRule],
 }
 
 const validateConfirmPassword = (rule, value, callback) => {
@@ -136,7 +136,7 @@ const validateConfirmPassword = (rule, value, callback) => {
 const passwordRules = {
   oldPassword: [required],
   newPassword: [required, passwordRule],
-  confirmPassword: [required, { validator: validateConfirmPassword, trigger: 'blur' }]
+  confirmPassword: [required, { validator: validateConfirmPassword, trigger: 'blur' }],
 }
 
 const showEditDialog = () => {
@@ -144,7 +144,7 @@ const showEditDialog = () => {
     realName: userInfo.value.realName,
     gender: userInfo.value.gender,
     phone: userInfo.value.phone,
-    email: userInfo.value.email
+    email: userInfo.value.email,
   })
   editDialogVisible.value = true
 }
@@ -153,7 +153,7 @@ const showPasswordDialog = () => {
   Object.assign(passwordForm, {
     oldPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
   })
   passwordDialogVisible.value = true
 }
@@ -182,7 +182,7 @@ const handlePasswordSubmit = async () => {
 
     await changePassword({
       oldPassword: passwordForm.oldPassword,
-      newPassword: passwordForm.newPassword
+      newPassword: passwordForm.newPassword,
     })
 
     ElMessage.success('密码修改成功，请重新登录')
@@ -203,6 +203,9 @@ const handlePasswordSubmit = async () => {
 <style scoped>
 .profile {
   padding: 20px;
+  --el-text-color-primary: #ffffff;
+  --el-text-color-regular: #e9f6ff;
+  --el-text-color-secondary: #cfe6ff;
 }
 
 .card-header {
@@ -214,5 +217,190 @@ const handlePasswordSubmit = async () => {
 .actions {
   margin-top: 30px;
   text-align: center;
+}
+
+/* 主题化卡片 */
+:deep(.el-card) {
+  background: rgba(20, 35, 70, 0.75);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  color: #e7f6ff;
+  border-radius: 6px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.18);
+}
+
+.card-header span {
+  color: #e9fbff;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.35);
+}
+
+/* 描述列表 */
+:deep(.el-descriptions) {
+  --el-descriptions-border-color: rgba(0, 229, 255, 0.2);
+  background: transparent;
+}
+
+:deep(.el-descriptions__body) {
+  background: transparent;
+}
+
+:deep(.el-descriptions__label) {
+  color: #e9f6ff;
+  font-weight: 600;
+  background: rgba(10, 24, 48, 0.9);
+  text-shadow: 0 0 6px rgba(0, 229, 255, 0.25);
+}
+
+:deep(.el-descriptions__content) {
+  color: #ffffff;
+  background: rgba(10, 24, 48, 0.65);
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
+}
+
+/* 覆盖 bordered 模式下的默认白色背景 */
+:deep(.el-descriptions__label.el-descriptions__item-bordered-label) {
+  background: rgba(10, 24, 48, 0.9);
+  color: #e9f6ff;
+}
+
+:deep(.el-descriptions__content.el-descriptions__item-bordered-content) {
+  background: rgba(10, 24, 48, 0.65);
+  color: #ffffff;
+}
+
+:deep(.el-descriptions__content span),
+:deep(.el-descriptions__content div) {
+  color: #ffffff;
+}
+
+/* 强制覆盖 Element Plus 默认文本色 */
+:deep(.el-descriptions__cell.el-descriptions__label.is-bordered-label) {
+  color: #e9f6ff !important;
+  background: rgba(10, 24, 48, 0.9) !important;
+}
+
+:deep(.el-descriptions__cell.el-descriptions__content.is-bordered-content) {
+  color: #ffffff !important;
+  background: rgba(10, 24, 48, 0.65) !important;
+}
+
+:deep(.el-descriptions__cell) {
+  border-color: rgba(0, 229, 255, 0.18) !important;
+}
+
+/* 按钮风格统一 */
+:deep(.el-button) {
+  border-radius: 2px;
+  letter-spacing: 1px;
+}
+
+:deep(.el-button--primary) {
+  background: rgba(0, 229, 255, 0.2);
+  border-color: #00e5ff;
+  color: #00e5ff;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+:deep(.el-button--primary:hover) {
+  background: rgba(0, 229, 255, 0.4);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+}
+
+/*
+:deep(.el-button--default) {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.6);
+  color: #d9f6ff;
+  --el-button-bg-color: rgba(0, 229, 255, 0.12);
+  --el-button-border-color: rgba(0, 229, 255, 0.6);
+  --el-button-text-color: #d9f6ff;
+  --el-button-text-color-regular: #d9f6ff;
+  --el-text-color-regular: #d9f6ff;
+  --el-button-hover-bg-color: rgba(0, 229, 255, 0.22);
+  --el-button-hover-border-color: rgba(0, 229, 255, 0.9);
+  --el-button-hover-text-color: #ffffff;
+}
+
+:deep(.el-button--default:hover) {
+  background: rgba(0, 229, 255, 0.22);
+  border-color: rgba(0, 229, 255, 0.9);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+}
+*/
+
+/* 标签可读性 */
+:deep(.el-tag) {
+  color: #eaffff;
+  background: rgba(0, 229, 255, 0.15);
+  border-color: rgba(0, 229, 255, 0.4);
+}
+
+:deep(.el-tag__content) {
+  color: inherit;
+}
+
+:deep(.el-tag--success) {
+  color: #c8f7db;
+  background: rgba(33, 197, 93, 0.2);
+  border-color: rgba(33, 197, 93, 0.6);
+}
+
+:deep(.el-tag--danger) {
+  color: #ffd6d6;
+  background: rgba(255, 77, 79, 0.2);
+  border-color: rgba(255, 77, 79, 0.6);
+}
+
+:deep(.el-tag--warning) {
+  color: #ffe7ba;
+  background: rgba(250, 173, 20, 0.2);
+  border-color: rgba(250, 173, 20, 0.6);
+}
+
+:deep(.el-tag--info) {
+  color: #d6e4ff;
+  background: rgba(80, 140, 255, 0.2);
+  border-color: rgba(80, 140, 255, 0.6);
+}
+
+/* 对话框 */
+:deep(.el-dialog) {
+  background: rgba(17, 32, 69, 0.95);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+/* 对话框表单输入框主题化 */
+:deep(.el-dialog .el-form-item__label) {
+  color: #d6f3ff;
+}
+
+:deep(.el-dialog .el-input__wrapper) {
+  background: rgba(10, 24, 48, 0.75);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(0, 229, 255, 0.12);
+}
+
+:deep(.el-dialog .el-input__inner) {
+  color: #e9f6ff;
+}
+
+:deep(.el-dialog .el-input__inner::placeholder) {
+  color: rgba(233, 246, 255, 0.5);
+}
+
+:deep(.el-dialog .el-input__wrapper.is-focus) {
+  border-color: rgba(0, 229, 255, 0.7);
+  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.15);
+}
+
+:deep(.el-dialog__title) {
+  color: #00e5ff;
+}
+
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: #a0cfff;
 }
 </style>

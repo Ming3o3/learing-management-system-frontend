@@ -1,0 +1,27 @@
+/* 全局主题覆盖：修正默认按钮在暗色主题下的可读性 */
+.el-button--default,
+.el-button:not(.el-button--primary):not(.el-button--success):not(.el-button--info):not(
+    .el-button--warning
+  ):not(.el-button--danger) {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.6);
+  color: #d9f6ff;
+  --el-button-bg-color: rgba(0, 229, 255, 0.12);
+  --el-button-border-color: rgba(0, 229, 255, 0.6);
+  --el-button-text-color: #d9f6ff;
+  --el-button-text-color-regular: #d9f6ff;
+  --el-text-color-regular: #d9f6ff;
+  --el-button-hover-bg-color: rgba(0, 229, 255, 0.22);
+  --el-button-hover-border-color: rgba(0, 229, 255, 0.9);
+  --el-button-hover-text-color: #ffffff;
+}
+
+.el-button--default:hover,
+.el-button:not(.el-button--primary):not(.el-button--success):not(.el-button--info):not(
+    .el-button--warning
+  ):not(.el-button--danger):hover {
+  background: rgba(0, 229, 255, 0.22);
+  border-color: rgba(0, 229, 255, 0.9);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+}

@@ -10,7 +10,12 @@
           <el-input v-model="searchForm.realName" placeholder="请输入真实姓名" clearable />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable style="width: 120px">
+          <el-select
+            v-model="searchForm.status"
+            placeholder="请选择状态"
+            clearable
+            style="width: 120px"
+          >
             <el-option label="正常" :value="1" />
             <el-option label="禁用" :value="0" />
           </el-select>
@@ -77,11 +82,13 @@
         <el-table-column prop="createTime" label="创建时间" width="180" />
         <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-button type="warning" size="small" @click="handleResetPassword(row)">
-              重置密码
-            </el-button>
-            <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+            <div class="op-buttons">
+              <el-button type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
+              <el-button type="warning" size="small" @click="handleResetPassword(row)">
+                重置密码
+              </el-button>
+              <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -165,13 +172,13 @@ const userFormRef = ref(null)
 const searchForm = reactive({
   username: '',
   realName: '',
-  status: null
+  status: null,
 })
 
 const pagination = reactive({
   pageNum: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
 })
 
 const tableData = ref([])
@@ -186,7 +193,7 @@ const userForm = reactive({
   phone: '',
   email: '',
   roleCode: 'STUDENT',
-  status: 1
+  status: 1,
 })
 
 const formRules = {
@@ -197,7 +204,7 @@ const formRules = {
   phone: [phoneRule],
   email: [emailRule],
   roleCode: [required],
-  status: [required]
+  status: [required],
 }
 
 const dialogTitle = computed(() => (userForm.id ? '编辑用户' : '新增用户'))
@@ -212,7 +219,7 @@ const loadUserList = async () => {
     const params = {
       ...searchForm,
       pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
     }
     // 使用分页接口，返回 { pageNum, pageSize, total, list }
     const res = await getUserPage(params)
@@ -234,7 +241,7 @@ const handleReset = () => {
   Object.assign(searchForm, {
     username: '',
     realName: '',
-    status: null
+    status: null,
   })
   handleSearch()
 }
@@ -259,7 +266,7 @@ const handleEdit = (row) => {
     avatar: row.avatar,
     status: row.status,
     // 从 roles 数组中提取角色代码
-    roleCode: row.roles && row.roles.length > 0 ? row.roles[0] : 'STUDENT'
+    roleCode: row.roles && row.roles.length > 0 ? row.roles[0] : 'STUDENT',
   })
   dialogVisible.value = true
 }
@@ -269,7 +276,7 @@ const handleDelete = async (row) => {
     await ElMessageBox.confirm(`确定删除用户"${row.username}"吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     await deleteUser(row.id)
@@ -287,7 +294,7 @@ const handleBatchDelete = async () => {
     await ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 个用户吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     // TODO: 批量删除API
@@ -305,7 +312,7 @@ const handleResetPassword = async (row) => {
     await ElMessageBox.confirm(`确定重置用户"${row.username}"的密码吗？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
 
     await resetPassword(row.id, '123456')
@@ -332,7 +339,7 @@ const handleSubmit = async () => {
         email: userForm.email,
         avatar: userForm.avatar,
         status: userForm.status,
-        roleCode: userForm.roleCode // 添加角色信息
+        roleCode: userForm.roleCode, // 添加角色信息
       })
       ElMessage.success('更新成功')
     } else {
@@ -344,7 +351,7 @@ const handleSubmit = async () => {
         gender: userForm.gender,
         phone: userForm.phone,
         email: userForm.email,
-        userType: userForm.roleCode === 'ADMIN' ? 1 : userForm.roleCode === 'TEACHER' ? 2 : 3
+        userType: userForm.roleCode === 'ADMIN' ? 1 : userForm.roleCode === 'TEACHER' ? 2 : 3,
       }
 
       await register(payload)
@@ -374,7 +381,7 @@ const resetForm = () => {
     phone: '',
     email: '',
     roleCode: 'STUDENT',
-    status: 1
+    status: 1,
   })
 }
 </script>
@@ -393,5 +400,349 @@ const resetForm = () => {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+
+.op-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* 深色主题样式适配 */
+:deep(.el-card) {
+  background: rgba(20, 35, 70, 0.75); /* 提亮背景 */
+  border: 1px solid rgba(0, 229, 255, 0.4); /* 增加边框亮度 */
+  color: #e7f6ff;
+  border-radius: 4px; /* 更锐利的圆角 */
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: visible; /* 允许装饰溢出 */
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.15); /* 增加整体发光 */
+}
+
+/* 科技感边角装饰 */
+:deep(.el-card)::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 20px;
+  height: 20px;
+  border-top: 2px solid #00e5ff;
+  border-left: 2px solid #00e5ff;
+  border-top-left-radius: 4px;
+  box-shadow: -2px -2px 8px rgba(0, 229, 255, 0.5);
+  z-index: 10;
+}
+
+:deep(.el-card)::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 20px;
+  height: 20px;
+  border-bottom: 2px solid #00e5ff;
+  border-right: 2px solid #00e5ff;
+  border-bottom-right-radius: 4px;
+  box-shadow: 2px 2px 8px rgba(0, 229, 255, 0.5);
+  z-index: 10;
+}
+
+:deep(.el-form-item__label) {
+  color: #74f0ff; /* 标签文字更亮 */
+  font-weight: 500;
+  text-shadow: 0 0 5px rgba(0, 229, 255, 0.3);
+}
+
+:deep(.el-input__wrapper),
+:deep(.el-select__wrapper) {
+  background: rgba(13, 28, 56, 0.6); /* 稍微提亮输入框背景 */
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.05); /* 内部光晕 */
+  transition: all 0.3s;
+}
+
+:deep(.el-input__inner) {
+  color: #ffffff;
+  font-family: 'Segoe UI', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+:deep(.el-input__wrapper:hover),
+:deep(.el-select__wrapper:hover) {
+  border-color: #00e5ff;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+:deep(.el-input__wrapper.is-focus),
+:deep(.el-select__wrapper.is-focused) {
+  border-color: #00e5ff !important;
+  background: rgba(13, 28, 56, 0.8);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.3) !important;
+}
+
+/* 下拉框弹层样式 */
+/* 下拉框弹层样式（teleport 到 body，需要全局选择器） */
+:global(.el-select__popper),
+:global(.el-popper.is-light) {
+  background: rgba(12, 24, 52, 0.98);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.2);
+}
+
+:global(.el-popper.is-light .el-popper__arrow::before) {
+  background: rgba(12, 24, 52, 0.98);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+}
+
+:global(.el-select-dropdown) {
+  background: transparent;
+}
+
+:global(.el-select-dropdown__item) {
+  color: #e7f6ff;
+}
+
+:global(.el-select-dropdown__item.is-selected) {
+  color: #00e5ff;
+  background: rgba(0, 229, 255, 0.12);
+}
+
+:global(.el-select-dropdown__item:hover) {
+  background: rgba(0, 229, 255, 0.16);
+}
+
+/* 表格样式 */
+:deep(.el-table) {
+  background-color: transparent;
+  color: #e7f6ff;
+  --el-table-border-color: rgba(0, 229, 255, 0.2); /* 边框更亮 */
+  --el-table-header-bg-color: rgba(0, 229, 255, 0.15); /* 表头更亮 */
+  --el-table-tr-bg-color: transparent;
+  --el-table-row-hover-bg-color: rgba(0, 229, 255, 0.15);
+}
+
+:deep(.el-table th.el-table__cell) {
+  background-color: rgba(0, 229, 255, 0.15);
+  color: #00e5ff;
+  font-weight: 700;
+  border-bottom: 2px solid rgba(0, 229, 255, 0.4); /* 增加表头底边强调 */
+  text-transform: uppercase; /* 更有科技感 */
+  letter-spacing: 1px;
+}
+
+:deep(.el-table tr) {
+  background-color: transparent;
+}
+
+:deep(.el-table td.el-table__cell) {
+  border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+  background-color: transparent; /* 确保默认单元格透明 */
+}
+
+/* 空数据区域背景修复 */
+:deep(.el-table__empty-block) {
+  background: rgba(12, 24, 52, 0.8);
+}
+
+:deep(.el-table__empty-text) {
+  color: #a0cfff;
+}
+
+/* 加载时遮罩改为深色，避免白色幕布 */
+:deep(.el-loading-mask) {
+  background-color: rgba(12, 24, 52, 0.65) !important;
+}
+
+:deep(.el-loading-spinner .path) {
+  stroke: #00e5ff;
+}
+
+/* 修复斑马纹背景太白的问题 */
+:deep(.el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell) {
+  background-color: rgba(0, 229, 255, 0.06); /* 稍微提亮 */
+}
+
+/* 修复鼠标悬停颜色 */
+:deep(.el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell) {
+  background-color: rgba(0, 229, 255, 0.2); /* 悬停更明显 */
+  box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.1); /* 增加内发光 */
+}
+
+/* 标签样式增强 */
+:deep(.el-tag) {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid currentColor;
+  border-radius: 0; /* 科技感矩形 */
+  font-weight: bold;
+}
+
+:deep(.el-tag--success) {
+  color: #00ffaa;
+  border-color: #00ffaa;
+  background: rgba(0, 255, 170, 0.1);
+  box-shadow: 0 0 5px rgba(0, 255, 170, 0.2);
+}
+
+:deep(.el-tag--danger) {
+  color: #ff3366;
+  border-color: #ff3366;
+  background: rgba(255, 51, 102, 0.1);
+  box-shadow: 0 0 5px rgba(255, 51, 102, 0.2);
+}
+
+:deep(.el-tag--warning) {
+  color: #ffcc00;
+  border-color: #ffcc00;
+  background: rgba(255, 204, 0, 0.1);
+  box-shadow: 0 0 5px rgba(255, 204, 0, 0.2);
+}
+
+:deep(.el-tag--info) {
+  color: #00e5ff; /* 灰色改为青色系 */
+  border-color: rgba(0, 229, 255, 0.5);
+  background: rgba(0, 229, 255, 0.05);
+}
+
+/* 修复表格内部Checkbox样式 */
+:deep(.el-checkbox__inner) {
+  background-color: transparent;
+  border-color: rgba(0, 255, 255, 0.5);
+}
+
+:deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
+  background-color: #00e5ff;
+  border-color: #00e5ff;
+}
+
+/* 分页样式 */
+:deep(.el-pagination) {
+  --el-pagination-bg-color: transparent;
+  --el-pagination-text-color: #a0cfff;
+  --el-pagination-hover-color: #00e5ff;
+}
+
+:deep(.el-pagination button:disabled) {
+  background-color: transparent;
+  color: rgba(160, 207, 255, 0.3);
+}
+
+:deep(.el-pagination .btn-prev),
+:deep(.el-pagination .btn-next) {
+  background-color: transparent;
+  color: #a0cfff;
+}
+
+:deep(.el-pager li) {
+  background-color: transparent;
+  color: #a0cfff;
+}
+
+:deep(.el-pager li.is-active) {
+  color: #00e5ff;
+  font-weight: bold;
+}
+
+/* 按钮样式增强 */
+:deep(.el-button) {
+  border-radius: 2px; /* 科技感矩形 */
+  font-family: 'Segoe UI', sans-serif;
+  letter-spacing: 1px;
+  backdrop-filter: blur(4px);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+:deep(.el-button::after) {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: rotate(45deg) translateX(-100%);
+  transition: transform 0.5s;
+}
+
+:deep(.el-button:hover::after) {
+  transform: rotate(45deg) translateX(100%);
+}
+
+:deep(.el-button--primary) {
+  background: rgba(0, 229, 255, 0.2);
+  border-color: #00e5ff;
+  color: #00e5ff;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+:deep(.el-button--primary:hover) {
+  background: rgba(0, 229, 255, 0.4);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+}
+
+:deep(.el-button--danger) {
+  background: rgba(255, 51, 102, 0.2);
+  border-color: #ff3366;
+  color: #ff3366;
+  box-shadow: 0 0 10px rgba(255, 51, 102, 0.2);
+}
+
+:deep(.el-button--danger:hover) {
+  background: rgba(255, 51, 102, 0.4);
+  box-shadow: 0 0 20px rgba(255, 51, 102, 0.4);
+}
+
+/* 默认按钮（如重置）透明化 */
+:deep(.el-button):not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(
+    .el-button--danger
+  ):not(.el-button--info) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(0, 255, 255, 0.2);
+  color: #e7f6ff;
+}
+
+:deep(.el-button):not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(
+    .el-button--danger
+  ):not(.el-button--info):hover {
+  background: rgba(0, 229, 255, 0.15);
+  border-color: #00e5ff;
+  color: #00e5ff;
+}
+
+/* 修复分页输入框背景 */
+:deep(.el-pagination__editor.el-input .el-input__wrapper) {
+  background: rgba(10, 25, 50, 0.4);
+  box-shadow: none;
+  border: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+:deep(.el-pagination__editor.el-input .el-input__inner) {
+  color: #00e5ff;
+}
+
+/* 对话框样式 */
+:deep(.el-dialog) {
+  background: rgba(17, 32, 69, 0.95);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+:deep(.el-dialog__title) {
+  color: #00e5ff;
+}
+
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: #a0cfff;
+}
+
+:deep(.el-radio) {
+  color: #e7f6ff;
+}
+
+:deep(.el-tag) {
+  border-radius: 4px;
 }
 </style>

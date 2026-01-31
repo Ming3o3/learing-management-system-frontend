@@ -13,10 +13,11 @@
         :default-active="activeMenu"
         :collapse="appStore.sidebarCollapsed"
         :unique-opened="true"
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409eff"
+        background-color="transparent"
+        text-color="#a0cfff"
+        active-text-color="#00e5ff"
         router
+        class="custom-menu"
       >
         <!-- 工作台 -->
         <el-menu-item index="/dashboard">
@@ -38,9 +39,7 @@
           </template>
           <el-menu-item index="/courses">课程列表</el-menu-item>
           <el-menu-item v-if="userStore.isStudent" index="/my-courses">我的课程</el-menu-item>
-          <el-menu-item v-if="!userStore.isStudent" index="/courses/create"
-            >创建课程</el-menu-item
-          >
+          <el-menu-item v-if="!userStore.isStudent" index="/courses/create">创建课程</el-menu-item>
         </el-sub-menu>
 
         <!-- 作业 -->
@@ -50,9 +49,7 @@
             <span>作业管理</span>
           </template>
           <el-menu-item index="/homework">作业列表</el-menu-item>
-          <el-menu-item v-if="!userStore.isStudent" index="/homework/create"
-            >发布作业</el-menu-item
-          >
+          <el-menu-item v-if="!userStore.isStudent" index="/homework/create">发布作业</el-menu-item>
         </el-sub-menu>
 
         <!-- 考试 -->
@@ -105,27 +102,29 @@ const activeMenu = computed(() => route.path)
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #2b2f3a;
-  border-bottom: 1px solid #1f2d3d;
+  background-color: transparent;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.1);
 }
 
 .logo {
   width: 32px;
   height: 32px;
   margin-right: 10px;
+  filter: drop-shadow(0 0 5px rgba(0, 229, 255, 0.5));
 }
 
 .title {
   font-size: 18px;
   font-weight: 600;
-  color: #fff;
+  color: #e7f6ff;
   white-space: nowrap;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
 }
 
 .title-mini {
   font-size: 20px;
   font-weight: 700;
-  color: #fff;
+  color: #00e5ff;
 }
 
 .menu-scrollbar {
@@ -133,15 +132,33 @@ const activeMenu = computed(() => route.path)
   overflow-y: auto;
 }
 
+.custom-menu {
+  border-right: none;
+  background-color: transparent !important;
+}
+
 :deep(.el-menu) {
   border-right: none;
+  background-color: transparent !important;
+}
+
+:deep(.el-menu-item),
+:deep(.el-sub-menu__title) {
+  background-color: transparent !important;
+}
+
+:deep(.el-menu-item:hover),
+:deep(.el-sub-menu__title:hover) {
+  background-color: rgba(0, 229, 255, 0.15) !important;
+  color: #00e5ff !important;
+}
+
+:deep(.el-menu-item.is-active) {
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.25), transparent) !important;
+  border-left: 2px solid #00e5ff;
 }
 
 :deep(.el-sub-menu__title) {
-  color: #bfcbd9;
-}
-
-:deep(.el-sub-menu__title:hover) {
-  background-color: #263445 !important;
+  color: #a0cfff;
 }
 </style>

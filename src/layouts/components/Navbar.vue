@@ -28,10 +28,6 @@
               <el-icon><User /></el-icon>
               个人中心
             </el-dropdown-item>
-            <el-dropdown-item command="changePassword">
-              <el-icon><Lock /></el-icon>
-              修改密码
-            </el-dropdown-item>
             <el-dropdown-item divided command="logout">
               <el-icon><SwitchButton /></el-icon>
               退出登录
@@ -66,9 +62,6 @@ const handleCommand = (command) => {
     case 'profile':
       router.push('/profile')
       break
-    case 'changePassword':
-      // TODO: 打开修改密码对话框
-      break
     case 'logout':
       handleLogout()
       break
@@ -80,7 +73,7 @@ const handleLogout = () => {
   ElMessageBox.confirm('确定要退出登录吗？', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
-    type: 'warning'
+    type: 'warning',
   })
     .then(() => {
       userStore.logout()
@@ -106,11 +99,12 @@ const handleLogout = () => {
 .toggle-btn {
   font-size: 20px;
   cursor: pointer;
-  color: #5a5e66;
+  color: #a0cfff;
 }
 
 .toggle-btn:hover {
-  color: #409eff;
+  color: #00e5ff;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
 }
 
 .right {
@@ -125,14 +119,59 @@ const handleLogout = () => {
   cursor: pointer;
   padding: 5px 10px;
   border-radius: 4px;
+  color: #a0cfff;
 }
 
 .user-info:hover {
-  background-color: #f5f7fa;
+  background-color: rgba(0, 229, 255, 0.1);
+  color: #00e5ff;
 }
 
 .username {
   font-size: 14px;
-  color: #303133;
+  color: inherit;
+}
+
+/* 头像下拉菜单主题化（teleport） */
+:global(.el-dropdown__popper),
+:global(.el-popper.is-light) {
+  background: rgba(12, 24, 52, 0.98);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.2);
+}
+
+:global(.el-dropdown-menu) {
+  background: transparent;
+}
+
+:global(.el-dropdown-menu__item) {
+  color: #e7f6ff;
+}
+
+:global(.el-dropdown-menu__item:hover) {
+  background: rgba(0, 229, 255, 0.08);
+  color: #b9dcff;
+}
+
+:global(.el-popper.is-light .el-popper__arrow::before) {
+  background: rgba(12, 24, 52, 0.98);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+}
+
+:deep(.el-breadcrumb__inner) {
+  color: #607d9c !important;
+}
+
+:deep(.el-breadcrumb__inner.is-link) {
+  color: #a0cfff !important;
+}
+
+:deep(.el-breadcrumb__inner.is-link:hover) {
+  color: #00e5ff !important;
+  text-shadow: 0 0 5px rgba(0, 229, 255, 0.5);
+}
+
+:deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
+  color: #00e5ff !important;
 }
 </style>
