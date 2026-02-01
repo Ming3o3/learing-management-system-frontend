@@ -49,25 +49,56 @@ export function analyzeQuestionStream(data, onMessage, onError, onComplete) {
 
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
+      let buffer = ''
+      let pending = ''
+
+      function stripDataPrefix(s) {
+        let t = s.trim()
+        while (t.startsWith('data: ')) t = t.substring(6).trim()
+        return t
+      }
+
+      function flushPending() {
+        let out = stripDataPrefix(pending)
+        pending = ''
+        if (!out || out === '[DONE]') return
+        out.split(/\s*data:\s*/).forEach((seg) => {
+          const s = seg.trim()
+          if (s) onMessage && onMessage(s)
+        })
+      }
 
       function read() {
         reader
           .read()
           .then(({ done, value }) => {
             if (done) {
+              if (buffer.trim()) {
+                const line = buffer.trim()
+                if (line.startsWith('data: ')) {
+                  flushPending()
+                  pending = stripDataPrefix(line.substring(6))
+                } else {
+                  pending += line
+                }
+              }
+              flushPending()
               onComplete && onComplete()
               return
             }
 
-            const text = decoder.decode(value, { stream: true })
-            // 解析SSE格式数据
-            const lines = text.split('\n')
+            buffer += decoder.decode(value, { stream: true })
+            const lines = buffer.split('\n')
+            buffer = lines.pop() || ''
             for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const content = line.substring(6)
-                if (content && content !== '[DONE]') {
-                  onMessage && onMessage(content)
-                }
+              const t = line.trim()
+              if (t.startsWith('data: ')) {
+                flushPending()
+                pending = stripDataPrefix(t.substring(6))
+              } else if (t === '') {
+                flushPending()
+              } else {
+                pending = pending ? pending + '\n' + line : line
               }
             }
 
