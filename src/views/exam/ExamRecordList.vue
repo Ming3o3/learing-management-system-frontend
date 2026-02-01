@@ -242,6 +242,11 @@
                     <el-tag v-else type="info" size="small">待批改</el-tag>
                   </el-descriptions-item>
                 </el-descriptions>
+
+                <!-- AI智能解析 -->
+                <div class="ai-section">
+                  <AiAnalyzer :question="answer" />
+                </div>
               </div>
             </el-card>
           </div>
@@ -258,6 +263,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
+import AiAnalyzer from '@/components/AiAnalyzer.vue'
 import { getCourseList } from '@/api/course'
 import { getRecordPage, getMyRecords, getRecordDetailById } from '@/api/exam'
 
@@ -562,6 +568,13 @@ const getQuestionTypeText = (type) => {
 
 :deep(.answer-detail-dialog .el-tag) {
   border-radius: 4px;
+}
+
+/* AI解析区域样式 */
+.ai-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(0, 229, 255, 0.2);
 }
 
 :deep(.answer-detail-dialog .el-empty__description) {
