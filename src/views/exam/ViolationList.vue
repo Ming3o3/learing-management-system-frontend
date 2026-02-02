@@ -60,7 +60,7 @@
             <el-tag v-else type="info" size="small">待处理</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="90" fixed="right" v-if="isTeacher || isAdmin">
+        <el-table-column label="操作" width="90" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="openDetail(row)">详情</el-button>
           </template>
@@ -78,19 +78,44 @@
         />
       </div>
     </el-card>
-    <el-dialog v-model="detailVisible" title="违规详情" width="560px" class="detail-dialog">
-      <el-descriptions :column="1" border v-if="currentRow">
-        <el-descriptions-item label="考试">{{ currentRow.examName }}</el-descriptions-item>
-        <el-descriptions-item label="课程">{{ currentRow.courseName }}</el-descriptions-item>
-        <el-descriptions-item label="学生">{{ currentRow.studentName }}</el-descriptions-item>
-        <el-descriptions-item label="违规类型">{{ currentRow.violationTypeDesc }}</el-descriptions-item>
-        <el-descriptions-item label="严重程度">{{ currentRow.severityDesc }}</el-descriptions-item>
-        <el-descriptions-item label="描述">{{ currentRow.violationDescription }}</el-descriptions-item>
-        <el-descriptions-item label="违规时间">{{ currentRow.violationTime }}</el-descriptions-item>
-        <el-descriptions-item label="处理状态">{{ currentRow.isHandled === 1 ? '已处理' : '待处理' }}</el-descriptions-item>
-        <el-descriptions-item label="处理结果" v-if="currentRow.isHandled === 1">{{ currentRow.handleResultDesc }}</el-descriptions-item>
-        <el-descriptions-item label="处理备注" v-if="currentRow.handleRemark">{{ currentRow.handleRemark }}</el-descriptions-item>
-      </el-descriptions>
+    <el-dialog v-model="detailVisible" title="违规详情" width="640px" class="detail-dialog">
+      <template v-if="currentRow">
+        <div v-if="currentRow.screenshotUrl" class="screenshot-wrap">
+          <div class="screenshot-label">违规截图</div>
+          <img :src="currentRow.screenshotUrl" alt="违规截图" class="screenshot-img" @error="onImgError" />
+        </div>
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="考试">{{ currentRow.examName }}</el-descriptions-item>
+          <el-descriptions-item label="课程">{{ currentRow.courseName }}</el-descriptions-item>
+          <el-descriptions-item label="学生">{{ currentRow.studentName }}</el-descriptions-item>
+          <el-descriptions-item label="违规类型">{{ currentRow.violationTypeDesc }}</el-descriptions-item>
+          <el-descriptions-item label="严重程度">{{ currentRow.severityDesc }}</el-descriptions-item>
+          <el-descriptions-item label="描述">{{ currentRow.violationDescription }}</el-descriptions-item>
+          <el-descriptions-item label="违规时间">{{ currentRow.violationTime }}</el-descriptions-item>
+          <el-descriptions-item label="处理状态">{{ currentRow.isHandled === 1 ? '已处理' : '待处理' }}</el-descriptions-item>
+          <el-descriptions-item label="处理结果" v-if="currentRow.isHandled === 1">{{ currentRow.handleResultDesc }}</el-descriptions-item>
+          <el-descriptions-item label="处理备注" v-if="currentRow.handleRemark">{{ currentRow.handleRemark }}</el-descriptions-item>
+        </el-descriptions>
+        <div v-if="(isTeacher || isAdmin) && currentRow.isHandled === 0" class="handle-form">
+          <div class="handle-form-title">二次复核</div>
+          <el-form :model="handleForm" label-width="80px" label-position="left">
+            <el-form-item label="处理结果">
+              <el-select v-model="handleForm.handleResult" placeholder="请选择" style="width: 100%">
+                <el-option label="认定为误报（不成立）" value="ignored" />
+                <el-option label="警告" value="warned" />
+                <el-option label="扣分" value="penalized" />
+                <el-option label="取消资格" value="disqualified" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="处理备注">
+              <el-input v-model="handleForm.handleRemark" type="textarea" :rows="2" placeholder="选填" />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" :loading="handleLoading" @click="submitHandle">提交复核</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -98,7 +123,8 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { getViolationPage } from '@/api/proctor'
+import { ElMessage } from 'element-plus'
+import { getViolationPage, getViolationById, handleViolation } from '@/api/proctor'
 import { getCourseList } from '@/api/course'
 import { getPaperPage } from '@/api/exam'
 
@@ -116,6 +142,11 @@ const courseList = ref([])
 const paperList = ref([])
 const detailVisible = ref(false)
 const currentRow = ref(null)
+const handleLoading = ref(false)
+const handleForm = reactive({
+  handleResult: 'ignored',
+  handleRemark: '',
+})
 
 const searchForm = reactive({
   courseId: null,
@@ -151,9 +182,41 @@ function resetSearch() {
   loadList()
 }
 
-function openDetail(row) {
-  currentRow.value = row
+async function openDetail(row) {
   detailVisible.value = true
+  currentRow.value = { ...row }
+  handleForm.handleResult = 'ignored'
+  handleForm.handleRemark = ''
+  try {
+    const res = await getViolationById(row.id)
+    if (res.data) currentRow.value = { ...row, ...res.data }
+  } catch {
+    currentRow.value = { ...row }
+  }
+}
+
+function onImgError(e) {
+  e.target.style.display = 'none'
+}
+
+async function submitHandle() {
+  if (!currentRow.value?.id) return
+  handleLoading.value = true
+  try {
+    await handleViolation(
+      currentRow.value.id,
+      handleForm.handleResult,
+      handleForm.handleRemark || undefined
+    )
+    ElMessage.success('复核成功')
+    const res = await getViolationById(currentRow.value.id)
+    if (res.data) currentRow.value = { ...currentRow.value, ...res.data }
+    await loadList()
+  } catch (err) {
+    ElMessage.error(err?.message || '复核失败')
+  } finally {
+    handleLoading.value = false
+  }
 }
 
 function severityTagType(severity) {
@@ -213,5 +276,47 @@ onMounted(() => {
 }
 :deep(.detail-dialog .el-descriptions__content) {
   color: #fff;
+}
+.screenshot-wrap {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(6, 16, 34, 0.9);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  border-radius: 8px;
+}
+.screenshot-label {
+  color: #00e5ff;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.screenshot-img {
+  max-width: 100%;
+  max-height: 320px;
+  display: block;
+  border-radius: 4px;
+}
+.handle-form {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(6, 16, 34, 0.6);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: 8px;
+}
+.handle-form-title {
+  color: #00e5ff;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.25);
+}
+:deep(.handle-form .el-form-item__label) {
+  color: #cfefff;
+}
+:deep(.detail-dialog .el-dialog__header) {
+  color: #00e5ff;
+}
+:deep(.detail-dialog .el-dialog__body) {
+  background: rgba(10, 24, 48, 0.95);
 }
 </style>

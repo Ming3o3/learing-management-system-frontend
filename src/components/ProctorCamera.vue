@@ -247,15 +247,37 @@ function handleWebSocketClose(event) {
 }
 
 /**
+ * 捕获当前画面为 base64（违规时上传到后端存 MinIO）
+ */
+function captureCurrentFrameAsBase64() {
+  if (!videoElement.value || !canvasElement.value) return null
+  try {
+    const video = videoElement.value
+    const canvas = canvasElement.value
+    if (!video.videoWidth || !video.videoHeight) return null
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+    return canvas.toDataURL('image/jpeg', 0.8)
+  } catch (e) {
+    console.error('违规截图捕获失败', e)
+    return null
+  }
+}
+
+/**
  * 处理违规告警
  */
 function handleViolationAlert(data) {
+  const screenshot = captureCurrentFrameAsBase64()
   const violation = {
     violationType: data.violation_type,
     description: proctorStore.proctorConfig.violationTypes[data.violation_type] || '未知违规',
     severity: data.severity || 'medium',
     confidence: data.confidence,
     details: data.details,
+    screenshot: screenshot || undefined,
   }
 
   // 添加到store

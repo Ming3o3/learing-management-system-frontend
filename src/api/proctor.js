@@ -77,6 +77,33 @@ export function getViolationPage(params) {
 }
 
 /**
+ * 获取单条违规记录详情（含截图预签名URL）
+ * @param {number} id - 违规记录ID
+ * @returns {Promise}
+ */
+export function getViolationById(id) {
+  return request({
+    url: `/proctor/violation/${id}`,
+    method: 'get',
+  })
+}
+
+/**
+ * 复核违规记录（教师/管理员二次判断）
+ * @param {number} id - 违规记录ID
+ * @param {string} handleResult - ignored|warned|penalized|disqualified
+ * @param {string} handleRemark - 备注
+ * @returns {Promise}
+ */
+export function handleViolation(id, handleResult, handleRemark) {
+  return request({
+    url: `/proctor/violation/handle/${id}`,
+    method: 'post',
+    params: { handleResult, handleRemark },
+  })
+}
+
+/**
  * 开始监考会话
  * @param {Object} data - 会话数据
  * @param {number} data.examId - 考试ID
@@ -182,15 +209,13 @@ export function getStudentIdentity(params) {
 
 /**
  * 删除考生身份照片
- * @param {Object} data - 删除参数
- * @param {number} data.examId - 考试ID
- * @param {number} data.studentId - 学生ID
+ * @param {Object} params - examId, studentId（后端从 query 读取）
  * @returns {Promise} 删除结果
  */
-export function deleteStudentIdentity(data) {
+export function deleteStudentIdentity(params) {
+  const { examId, studentId } = params
   return request({
-    url: '/proctor/identity/delete',
+    url: `/proctor/identity/delete?examId=${examId}&studentId=${studentId}`,
     method: 'delete',
-    data,
   })
 }
