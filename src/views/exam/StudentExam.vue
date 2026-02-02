@@ -35,8 +35,9 @@
       <!-- 身份验证步骤 -->
       <div v-if="examStatus === 'identity-verify'" style="margin-top: 20px">
         <IdentityPhotoUpload
+          v-if="currentStudentId"
           :exam-id="parseInt(route.params.id)"
-          :student-id="getCurrentUserId()"
+          :student-id="currentStudentId"
           @success="handleIdentityVerified"
           @cancel="handleCancelIdentity"
         />
@@ -185,9 +186,10 @@
       v-show="debugCameraVisible"
     >
       <ProctorCamera
+        v-if="currentStudentId"
         ref="proctorCameraRef"
         :exam-id="parseInt(route.params.id)"
-        :student-id="getCurrentUserId()"
+        :student-id="currentStudentId"
         :record-id="recordId"
         :enabled="true"
         :show-preview="debugCameraVisible"
@@ -217,10 +219,13 @@ import {
 import ProctorCamera from '@/components/ProctorCamera.vue'
 import IdentityPhotoUpload from '@/components/IdentityPhotoUpload.vue'
 import { useProctorStore } from '@/stores/proctor'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const route = useRoute()
 const proctorStore = useProctorStore()
+const userStore = useUserStore()
+const currentStudentId = computed(() => userStore.userInfo?.id ?? null)
 
 const loading = ref(false)
 const examStatus = ref('not-started') // not-started, identity-verify, doing, submitted
@@ -546,19 +551,6 @@ const getQuestionTypeText = (type) => {
 }
 
 /**
- * 获取当前用户ID
- */
-const getCurrentUserId = () => {
-  // 从 localStorage 或 sessionStorage 获取用户信息
-  try {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-    return userInfo.id || 1
-  } catch {
-    return 1
-  }
-}
-
-/**
  * 处理违规检测
  */
 const handleViolationDetected = (data) => {
@@ -833,5 +825,10 @@ const handleAutoSubmit = async (proctorData) => {
   margin-top: 30px;
   padding: 20px 0;
   border-top: 1px solid rgba(64, 158, 255, 0.2);
+}
+
+:deep(.el-result__title p),
+:deep(.el-result__subtitle p) {
+  color: #fff;
 }
 </style>

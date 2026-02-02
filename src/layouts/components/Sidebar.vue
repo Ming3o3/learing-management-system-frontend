@@ -61,6 +61,7 @@
           <el-menu-item index="/exam/papers">试卷列表</el-menu-item>
           <el-menu-item v-if="!userStore.isStudent" index="/exam/questions">题库管理</el-menu-item>
           <el-menu-item index="/exam/records">考试记录</el-menu-item>
+          <el-menu-item index="/exam/violations">违规记录</el-menu-item>
         </el-sub-menu>
 
         <!-- 成绩 -->

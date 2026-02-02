@@ -124,7 +124,7 @@
     </el-card>
 
     <!-- 查看对话框 -->
-    <el-dialog v-model="viewDialogVisible" title="试题详情" width="700px">
+    <el-dialog v-model="viewDialogVisible" title="试题详情" width="700px" class="question-detail-dialog">
       <el-descriptions :column="1" border>
         <el-descriptions-item label="题目">{{ currentQuestion.title }}</el-descriptions-item>
         <el-descriptions-item label="课程">{{ currentQuestion.courseName }}</el-descriptions-item>
@@ -360,5 +360,10 @@ const parseOptions = (options) => {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+
+:deep(.question-detail-dialog .el-descriptions__label),
+:deep(.question-detail-dialog .el-descriptions__content) {
+  color: #fff;
 }
 </style>

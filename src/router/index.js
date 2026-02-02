@@ -170,6 +170,12 @@ const routes = [
         meta: { title: '考试记录' },
       },
       {
+        path: 'exam/violations',
+        name: 'ViolationList',
+        component: () => import('@/views/exam/ViolationList.vue'),
+        meta: { title: '违规记录' },
+      },
+      {
         path: 'exam/correct/:id',
         name: 'ExamCorrect',
         component: () => import('@/views/exam/ExamCorrect.vue'),

@@ -64,6 +64,19 @@ export function getViolationList(params) {
 }
 
 /**
+ * 分页查询违规记录（按角色过滤）
+ * @param {Object} params - examId, studentId, courseId, pageNum, pageSize
+ * @returns {Promise} { list, total, pageNum, pageSize }
+ */
+export function getViolationPage(params) {
+  return request({
+    url: '/proctor/violation/page',
+    method: 'get',
+    params,
+  })
+}
+
+/**
  * 开始监考会话
  * @param {Object} data - 会话数据
  * @param {number} data.examId - 考试ID
