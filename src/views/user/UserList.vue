@@ -618,31 +618,49 @@ const resetForm = () => {
 }
 
 /* 分页样式 */
-:deep(.el-pagination) {
+.pagination :deep(.el-pagination) {
   --el-pagination-bg-color: transparent;
-  --el-pagination-text-color: #a0cfff;
-  --el-pagination-hover-color: #00e5ff;
+  --el-pagination-text-color: #e7f6ff;
+  --el-text-color-regular: #e7f6ff;
+  --el-text-color-primary: #e7f6ff;
+  --el-text-color-secondary: #e7f6ff;
+  color: #e7f6ff !important;
 }
 
-:deep(.el-pagination button:disabled) {
-  background-color: transparent;
-  color: rgba(160, 207, 255, 0.3);
+.pagination :deep(.el-pagination *),
+.pagination :deep(.el-pagination .el-pagination__total),
+.pagination :deep(.el-pagination .el-pagination__jump),
+.pagination :deep(.el-pagination .btn-prev),
+.pagination :deep(.el-pagination .btn-next),
+.pagination :deep(.el-pagination .el-pager li),
+.pagination :deep(.el-pagination .el-select .el-input__inner),
+.pagination :deep(.el-pagination .el-select .el-input__wrapper),
+.pagination :deep(.el-pagination .el-select__wrapper .el-select__selected-item),
+.pagination :deep(.el-pagination .el-select__placeholder) {
+  color: #e7f6ff !important;
 }
 
-:deep(.el-pagination .btn-prev),
-:deep(.el-pagination .btn-next) {
-  background-color: transparent;
-  color: #a0cfff;
+.pagination :deep(.el-pagination button:disabled) {
+  background-color: transparent !important;
+  color: rgba(231, 246, 255, 0.5) !important;
 }
 
-:deep(.el-pager li) {
-  background-color: transparent;
-  color: #a0cfff;
+.pagination :deep(.el-pagination .btn-prev),
+.pagination :deep(.el-pagination .btn-next) {
+  background-color: transparent !important;
 }
 
-:deep(.el-pager li.is-active) {
-  color: #00e5ff;
+.pagination :deep(.el-pager li) {
+  background-color: transparent !important;
+}
+
+.pagination :deep(.el-pager li.is-active) {
+  color: #fff !important;
   font-weight: bold;
+}
+
+.pagination :deep(.el-pagination__editor.el-input .el-input__inner) {
+  color: #e7f6ff !important;
 }
 
 /* 按钮样式增强 */
@@ -714,14 +732,14 @@ const resetForm = () => {
 }
 
 /* 修复分页输入框背景 */
-:deep(.el-pagination__editor.el-input .el-input__wrapper) {
+.pagination :deep(.el-pagination__editor.el-input .el-input__wrapper) {
   background: rgba(10, 25, 50, 0.4);
   box-shadow: none;
   border: 1px solid rgba(0, 255, 255, 0.2);
 }
 
-:deep(.el-pagination__editor.el-input .el-input__inner) {
-  color: #00e5ff;
+.pagination :deep(.el-pagination__editor.el-input .el-input__inner) {
+  color: #e7f6ff !important;
 }
 
 /* 对话框样式 */
