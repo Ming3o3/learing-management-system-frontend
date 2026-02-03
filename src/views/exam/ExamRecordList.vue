@@ -225,14 +225,38 @@
               <div class="question-content">
                 <p><strong>题目:</strong> {{ answer.questionContent }}</p>
 
+                <div v-if="getAllOptionsList(answer.options).length" class="all-options-box">
+                  <div class="all-options-label">题目选项</div>
+                  <div class="all-options-list">
+                    <div
+                      v-for="item in getAllOptionsList(answer.options)"
+                      :key="item.key"
+                      class="all-options-item"
+                    >
+                      <span class="opt-key">{{ item.key }}.</span>
+                      <span class="opt-text">{{ item.text }}</span>
+                    </div>
+                  </div>
+                </div>
+
                 <el-descriptions :column="1" border style="margin-top: 10px">
                   <el-descriptions-item label="学生答案">
-                    <span :style="{ color: answer.isCorrect === 1 ? '#67c23a' : '#f56c6c' }">
-                      {{ answer.studentAnswer || '未作答' }}
-                    </span>
+                    <div class="answer-with-option">
+                      <span :style="{ color: answer.isCorrect === 1 ? '#67c23a' : '#f56c6c' }">
+                        {{ answer.studentAnswer || '未作答' }}
+                      </span>
+                      <span v-if="getOptionContent(answer.studentAnswer, answer.options)" class="option-desc">
+                        {{ getOptionContent(answer.studentAnswer, answer.options) }}
+                      </span>
+                    </div>
                   </el-descriptions-item>
                   <el-descriptions-item label="正确答案">
-                    <span style="color: #67c23a">{{ answer.correctAnswer }}</span>
+                    <div class="answer-with-option">
+                      <span style="color: #67c23a">{{ answer.correctAnswer }}</span>
+                      <span v-if="getOptionContent(answer.correctAnswer, answer.options)" class="option-desc">
+                        {{ getOptionContent(answer.correctAnswer, answer.options) }}
+                      </span>
+                    </div>
                   </el-descriptions-item>
                   <el-descriptions-item label="判定结果" v-if="answer.questionType <= 3">
                     <el-tag v-if="answer.isCorrect === 1" type="success" size="small">正确</el-tag>
@@ -468,6 +492,30 @@ const getQuestionTypeText = (type) => {
   }
   return typeMap[type] || '未知'
 }
+
+const parseOptions = (optionsStr) => {
+  if (!optionsStr || typeof optionsStr !== 'string') return {}
+  try {
+    return JSON.parse(optionsStr)
+  } catch {
+    return {}
+  }
+}
+
+const getOptionContent = (answerKeys, optionsStr) => {
+  if (!answerKeys || !optionsStr) return ''
+  const opts = parseOptions(optionsStr)
+  if (!opts || typeof opts !== 'object') return ''
+  const keys = String(answerKeys).split(/[,，]/).map((k) => k.trim()).filter(Boolean)
+  const parts = keys.map((k) => (opts[k] != null ? `${k}. ${opts[k]}` : k))
+  return parts.length ? parts.join(' / ') : ''
+}
+
+const getAllOptionsList = (optionsStr) => {
+  const opts = parseOptions(optionsStr)
+  if (!opts || typeof opts !== 'object') return []
+  return Object.entries(opts).map(([key, text]) => ({ key, text: text ?? '' }))
+}
 </script>
 
 <style scoped>
@@ -492,6 +540,49 @@ const getQuestionTypeText = (type) => {
 
 .answer-item .question-content strong {
   color: #9fe8ff;
+}
+
+.answer-with-option {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.answer-with-option .option-desc {
+  font-size: 13px;
+  color: rgba(159, 232, 255, 0.85);
+  padding-left: 8px;
+  border-left: 2px solid rgba(0, 229, 255, 0.35);
+}
+
+.all-options-box {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: rgba(8, 20, 40, 0.9);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  border-radius: 6px;
+}
+
+.all-options-label {
+  font-size: 13px;
+  color: #9fe8ff;
+  margin-bottom: 8px;
+}
+
+.all-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.all-options-item {
+  font-size: 13px;
+  color: #e7f6ff;
+}
+
+.all-options-item .opt-key {
+  color: rgba(0, 229, 255, 0.9);
+  margin-right: 6px;
 }
 
 :deep(.answer-detail-dialog) {

@@ -126,18 +126,23 @@ const startAnalysis = () => {
   const requestData = {
     questionContent: props.question.questionContent,
     questionType: props.question.questionType,
-    studentAnswer: props.question.studentAnswer,
-    correctAnswer: props.question.correctAnswer,
+    studentAnswer: props.question.studentAnswer ?? '',
+    correctAnswer: props.question.correctAnswer ?? '',
     needAnalysis: true,
   }
 
-  // 处理选项
-  if (props.question.questionType <= 2 && props.question.options) {
+  if (props.question.questionType <= 3 && props.question.options) {
     try {
-      requestData.options =
+      const raw =
         typeof props.question.options === 'string'
           ? JSON.parse(props.question.options)
           : props.question.options
+      if (Array.isArray(raw)) {
+        requestData.options = raw
+      } else if (raw && typeof raw === 'object') {
+        const keys = Object.keys(raw).sort()
+        requestData.options = keys.map((k) => (raw[k] != null ? String(raw[k]) : ''))
+      }
     } catch (e) {
       console.warn('解析选项失败:', e)
     }
