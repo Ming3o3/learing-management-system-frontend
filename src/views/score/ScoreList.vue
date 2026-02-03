@@ -59,6 +59,7 @@
           <el-icon><DataAnalysis /></el-icon>
           成绩统计
         </el-button>
+        <span class="chain-tip">考试成绩可在表格右侧「区块链」列点击「上链」写入链上存证；验真请用左侧菜单「成绩验真」。</span>
       </div>
     </el-card>
 
@@ -106,6 +107,26 @@
             <el-tag :type="row.passed ? 'success' : 'danger'" effect="dark">
               {{ row.passed ? '及格' : '不及格' }}
             </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="区块链" width="160" align="center" v-if="isTeacher || isAdmin">
+          <template #default="{ row }">
+            <template v-if="row.onChain">
+              <el-tag type="success" effect="dark" size="small">已上链</el-tag>
+              <div class="tx-hash" :title="row.blockchainTxHash">{{ (row.blockchainTxHash || '').slice(0, 10) }}...</div>
+            </template>
+            <template v-else>
+              <el-button
+                v-if="row.scoreType === 2"
+                type="primary"
+                size="small"
+                :loading="publishLoading === row.id"
+                @click="handlePublishToChain(row)"
+              >
+                上链
+              </el-button>
+              <span v-else class="no-chain">-</span>
+            </template>
           </template>
         </el-table-column>
       </el-table>
@@ -246,7 +267,7 @@ import {
   Bottom,
   Checked,
 } from '@element-plus/icons-vue'
-import { getScoreList, exportScores, getCourseScoreStats, syncAllExamScores } from '@/api/score'
+import { getScoreList, exportScores, getCourseScoreStats, syncAllExamScores, publishScoreToChain } from '@/api/score'
 import { getAllCourses } from '@/api/course'
 import { useUserStore } from '@/stores/user'
 
@@ -255,6 +276,7 @@ const userStore = useUserStore()
 const loading = ref(false)
 const statisticsVisible = ref(false)
 const courses = ref([])
+const publishLoading = ref(null)
 
 const isTeacher = computed(() => userStore.isTeacher)
 const isAdmin = computed(() => userStore.isAdmin)
@@ -405,6 +427,24 @@ const handleExport = async () => {
 }
 
 /**
+ * 成绩上链
+ */
+const handlePublishToChain = async (row) => {
+  try {
+    publishLoading.value = row.id
+    const res = await publishScoreToChain(row.id)
+    const txHash = res.data?.data ?? res.data
+    ElMessage.success('上链成功：' + (typeof txHash === 'string' ? txHash.slice(0, 18) + '...' : '已写入'))
+    await loadScoreList()
+  } catch (error) {
+    console.error('Publish to chain failed:', error)
+    ElMessage.error(error.response?.data?.message || '上链失败')
+  } finally {
+    publishLoading.value = null
+  }
+}
+
+/**
  * 成绩统计
  */
 const handleStatistics = async () => {
@@ -505,7 +545,15 @@ const formatDateTime = (dateTime) => {
 
 .action-buttons {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 12px;
+}
+
+.chain-tip {
+  color: rgba(0, 229, 255, 0.85);
+  font-size: 12px;
+  margin-left: 8px;
 }
 
 /* 表格样式 */
@@ -556,6 +604,16 @@ const formatDateTime = (dateTime) => {
 
 .fail-score {
   color: #ff8f8f;
+}
+
+.tx-hash {
+  font-size: 11px;
+  color: rgba(0, 229, 255, 0.9);
+  margin-top: 2px;
+}
+
+.no-chain {
+  color: rgba(231, 246, 255, 0.5);
 }
 
 /* 分页 */

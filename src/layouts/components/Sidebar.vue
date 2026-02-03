@@ -72,6 +72,7 @@
           </template>
           <el-menu-item v-if="userStore.isStudent" index="/my-scores">我的成绩</el-menu-item>
           <el-menu-item v-if="!userStore.isStudent" index="/scores">成绩管理</el-menu-item>
+          <el-menu-item index="/score/verify">成绩验真</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-scrollbar>

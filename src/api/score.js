@@ -103,3 +103,29 @@ export function syncHomeworkScore(homeworkSubmissionId) {
     method: 'post',
   })
 }
+
+/**
+ * 成绩上链
+ * @param {Number} id 成绩ID
+ * @returns {Promise}
+ */
+export function publishScoreToChain(id) {
+  return request({
+    url: `/score/${id}/publish-chain`,
+    method: 'post',
+  })
+}
+
+/**
+ * 成绩链上验真（按用户ID + 考试记录ID）
+ * @param {String} userId 用户ID
+ * @param {String} relatedId 考试记录ID(score.related_id)
+ * @returns {Promise}
+ */
+export function verifyGradeOnChain(userId, relatedId) {
+  return request({
+    url: '/score/verify',
+    method: 'get',
+    params: { userId, relatedId },
+  })
+}

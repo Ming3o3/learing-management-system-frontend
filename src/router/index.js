@@ -194,6 +194,12 @@ const routes = [
         component: () => import('@/views/score/MyScores.vue'),
         meta: { title: '我的成绩', roles: ['STUDENT'] },
       },
+      {
+        path: 'score/verify',
+        name: 'VerifyGrade',
+        component: () => import('@/views/score/VerifyGrade.vue'),
+        meta: { title: '成绩验真' },
+      },
     ],
   },
   {
