@@ -74,6 +74,11 @@
           <el-menu-item v-if="!userStore.isStudent" index="/scores">成绩管理</el-menu-item>
           <el-menu-item index="/score/verify">成绩验真</el-menu-item>
         </el-sub-menu>
+
+        <el-menu-item index="/programming">
+          <el-icon><Monitor /></el-icon>
+          <template #title>编程练习</template>
+        </el-menu-item>
       </el-menu>
     </el-scrollbar>
   </div>
@@ -84,6 +89,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
+import { Monitor } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const appStore = useAppStore()

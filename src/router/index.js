@@ -200,6 +200,12 @@ const routes = [
         component: () => import('@/views/score/VerifyGrade.vue'),
         meta: { title: '成绩验真' },
       },
+      {
+        path: 'programming',
+        name: 'ProgrammingPractice',
+        component: () => import('@/views/programming/ProgrammingPractice.vue'),
+        meta: { title: '编程练习' },
+      },
     ],
   },
   {
