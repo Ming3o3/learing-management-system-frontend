@@ -8,6 +8,9 @@
       </template>
 
       <el-descriptions :column="2" border>
+        <el-descriptions-item label="用户ID">
+          <span class="user-id">{{ userInfo.id }}</span>
+        </el-descriptions-item>
         <el-descriptions-item label="用户名">{{ userInfo.username }}</el-descriptions-item>
         <el-descriptions-item label="真实姓名">{{ userInfo.realName }}</el-descriptions-item>
         <el-descriptions-item label="性别">
@@ -212,6 +215,12 @@ const handlePasswordSubmit = async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.user-id {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.35);
 }
 
 .actions {
