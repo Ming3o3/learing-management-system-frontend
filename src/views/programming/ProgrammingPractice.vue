@@ -19,6 +19,10 @@
               <el-icon><VideoPlay /></el-icon>
               运行
             </el-button>
+            <el-button @click="handleExport">
+              <el-icon><Download /></el-icon>
+              导出
+            </el-button>
           </div>
         </div>
       </template>
@@ -82,7 +86,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
-import { VideoPlay } from '@element-plus/icons-vue'
+import { VideoPlay, Download } from '@element-plus/icons-vue'
 import { marked } from 'marked'
 import * as echarts from 'echarts'
 import { runCode, codeScoreStream, codeOptimizeStream } from '@/api/programming'
@@ -433,6 +437,20 @@ function onLanguageChange() {
 
 function getCode() {
   return editor ? editor.getValue() : ''
+}
+
+const EXPORT_FILENAME = { java: 'Main.java', python: 'main.py', c: 'main.c' }
+
+function handleExport() {
+  const code = getCode()
+  const name = EXPORT_FILENAME[language.value] || 'code.txt'
+  const blob = new Blob([code], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = name
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 async function handleRun() {
