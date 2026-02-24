@@ -181,8 +181,9 @@ export function registerStudentIdentity(data) {
   formData.append('student_id', data.studentId)
   formData.append('target_image', data.identityPhoto)
 
+  const base = import.meta.env.VITE_PROCTOR_API_URL || 'http://localhost:8000'
   return request({
-    url: 'http://localhost:8000/api/exam/register',
+    url: `${base}/api/exam/register`,
     method: 'post',
     data: formData,
     headers: {
