@@ -94,7 +94,7 @@ const handleViewCourse = (course) => {
 }
 
 const handleContinueLearn = (course) => {
-  router.push(`/courses/${course.id}/learn`)
+  router.push(`/ai-assistant?courseId=${course.id}&courseName=${encodeURIComponent(course.courseName)}`)
 }
 
 const handleViewHomework = (course) => {

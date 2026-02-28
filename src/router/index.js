@@ -206,6 +206,12 @@ const routes = [
         component: () => import('@/views/programming/ProgrammingPractice.vue'),
         meta: { title: '编程练习' },
       },
+      {
+        path: 'ai-assistant',
+        name: 'AiAssistant',
+        component: () => import('@/views/course/AiAssistant.vue'),
+        meta: { title: '学习助手' },
+      },
     ],
   },
   {

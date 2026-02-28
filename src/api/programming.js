@@ -69,6 +69,23 @@ function readSSEStream(reader, decoder, onMessage, onError, onComplete) {
   read()
 }
 
+/**
+ * 代码多维度评分 - 非流式（返回结构化 JSON）
+ * @param {Object} data { language, code }
+ * @returns {Promise} { code, data: { dimensions: [{name,score,comment}], overallSuggestion } }
+ */
+export function codeScore(data) {
+  return request({
+    url: '/coding/score',
+    method: 'post',
+    data,
+    timeout: 120000,
+  })
+}
+
+/**
+ * 代码多维度评分 - 流式（保留备用）
+ */
 export function codeScoreStream(data, onMessage, onError, onComplete) {
   const token = local.get('token')
   const controller = new AbortController()
@@ -93,6 +110,23 @@ export function codeScoreStream(data, onMessage, onError, onComplete) {
   return () => controller.abort()
 }
 
+/**
+ * 代码优化建议 - 非流式（返回结构化 JSON）
+ * @param {Object} data { language, code, direction }
+ * @returns {Promise} { code, data: { summary, highlights, suggestions, optimizedCode } }
+ */
+export function codeOptimize(data) {
+  return request({
+    url: '/coding/optimize',
+    method: 'post',
+    data,
+    timeout: 120000,
+  })
+}
+
+/**
+ * 代码优化建议 - 流式（保留备用）
+ */
 export function codeOptimizeStream(data, onMessage, onError, onComplete) {
   const token = local.get('token')
   const controller = new AbortController()

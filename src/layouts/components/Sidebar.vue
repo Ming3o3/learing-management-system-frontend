@@ -79,6 +79,11 @@
           <el-icon><Monitor /></el-icon>
           <template #title>编程练习</template>
         </el-menu-item>
+
+        <el-menu-item index="/ai-assistant">
+          <el-icon><Cpu /></el-icon>
+          <template #title>学习助手</template>
+        </el-menu-item>
       </el-menu>
     </el-scrollbar>
   </div>
@@ -89,7 +94,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
-import { Monitor } from '@element-plus/icons-vue'
+import { Monitor, Cpu } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const appStore = useAppStore()

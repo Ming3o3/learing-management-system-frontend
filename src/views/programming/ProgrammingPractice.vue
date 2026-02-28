@@ -50,11 +50,33 @@
       </template>
       <div v-if="scoreRadarData" ref="scoreChartRef" class="score-radar-chart"></div>
       <div class="ai-content">
-        <v-md-preview v-if="scoreContent" :text="scoreText" class="ai-md-wrap" />
-        <span v-else-if="scoreLoading" class="placeholder">正在接收 AI 评分...</span>
-        <span v-else class="placeholder"
-          >点击「多维度评分」获取功能、健壮性、工程能力等维度点评</span
-        >
+        <!-- 加载中 -->
+        <div v-if="scoreLoading" class="score-loading-wrap">
+          <el-icon class="is-loading" :size="24" color="#00e5ff"><VideoPlay /></el-icon>
+          <span class="score-loading-text">AI 正在评分，请稍候…</span>
+        </div>
+        <!-- 结构化评分卡片 -->
+        <div v-else-if="scoreData" class="score-result">
+          <div class="score-dimensions">
+            <div
+              v-for="(dim, idx) in scoreData.dimensions"
+              :key="idx"
+              class="score-dim-card"
+            >
+              <div class="dim-header">
+                <span class="dim-name">{{ dim.name }}</span>
+                <span class="dim-score" :class="dimScoreClass(dim.score)">{{ dim.score }}<small>/10</small></span>
+              </div>
+              <div class="dim-comment">{{ dim.comment }}</div>
+            </div>
+          </div>
+          <div v-if="scoreData.overallSuggestion" class="score-suggestion">
+            <div class="suggestion-header">综合建议</div>
+            <div class="suggestion-body">{{ scoreData.overallSuggestion }}</div>
+          </div>
+        </div>
+        <!-- 空态 -->
+        <span v-else class="placeholder">点击「多维度评分」获取功能、健壮性、工程能力等维度点评</span>
       </div>
     </el-card>
 
@@ -75,8 +97,52 @@
         </div>
       </template>
       <div class="ai-content">
-        <v-md-preview v-if="optimizeContent" :text="optimizeText" class="ai-md-wrap" />
-        <span v-else-if="optimizeLoading" class="placeholder">正在接收优化建议...</span>
+        <!-- 结构化 JSON 卡片 -->
+        <template v-if="optimizeData">
+          <!-- 总览 -->
+          <div v-if="optimizeData.summary" class="optimize-summary">
+            <el-icon style="color: #409eff; margin-right: 6px"><InfoFilled /></el-icon>
+            {{ optimizeData.summary }}
+          </div>
+
+          <!-- 代码亮点 -->
+          <div v-if="optimizeData.highlights && optimizeData.highlights.length" class="optimize-section">
+            <div class="optimize-section-title">✅ 代码亮点</div>
+            <div class="optimize-highlights">
+              <el-tag v-for="(h, i) in optimizeData.highlights" :key="i" type="success" effect="dark" class="highlight-tag">{{ h }}</el-tag>
+            </div>
+          </div>
+
+          <!-- 优化建议列表 -->
+          <div v-if="optimizeData.suggestions && optimizeData.suggestions.length" class="optimize-section">
+            <div class="optimize-section-title">💡 优化建议</div>
+            <el-card v-for="(s, i) in optimizeData.suggestions" :key="i" shadow="hover" class="suggestion-card">
+              <div class="suggestion-title">
+                <el-tag size="small" type="warning" effect="dark" round>{{ i + 1 }}</el-tag>
+                <span class="suggestion-title-text">{{ s.title }}</span>
+              </div>
+              <div v-if="s.problem" class="suggestion-row">
+                <span class="suggestion-label">问题：</span>
+                <span class="suggestion-text">{{ s.problem }}</span>
+              </div>
+              <div v-if="s.solution" class="suggestion-row">
+                <span class="suggestion-label">方案：</span>
+                <span class="suggestion-text">{{ s.solution }}</span>
+              </div>
+              <div v-if="s.codeSnippet" class="suggestion-code">
+                <div class="code-label">关键代码</div>
+                <pre class="code-block"><code>{{ s.codeSnippet }}</code></pre>
+              </div>
+            </el-card>
+          </div>
+
+          <!-- 优化后完整代码 -->
+          <div v-if="optimizeData.optimizedCode" class="optimize-section">
+            <div class="optimize-section-title">📝 优化后代码</div>
+            <pre class="code-block optimized-code"><code>{{ optimizeData.optimizedCode }}</code></pre>
+          </div>
+        </template>
+        <span v-else-if="optimizeLoading" class="placeholder">正在生成优化建议...</span>
         <span v-else class="placeholder">输入优化方向后点击「生成建议」</span>
       </div>
     </el-card>
@@ -86,9 +152,9 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
-import { VideoPlay, Download } from '@element-plus/icons-vue'
+import { VideoPlay, Download, InfoFilled } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
-import { runCode, codeScoreStream, codeOptimizeStream } from '@/api/programming'
+import { runCode, codeScore, codeOptimize } from '@/api/programming'
 
 const RADAR_INDICATORS = [
   { name: '功能正确性', max: 10 },
@@ -98,117 +164,11 @@ const RADAR_INDICATORS = [
   { name: '规范与风格', max: 10 },
 ]
 
-function parseScoreFromContent(text) {
-  if (!text || typeof text !== 'string') return null
-  const values = []
-  for (const ind of RADAR_INDICATORS) {
-    const re = new RegExp(
-      ind.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[^0-9]*?(\\d+)\\s*/\\s*10',
-      'i',
-    )
-    const m = text.match(re)
-    values.push(m ? Math.min(10, Math.max(0, parseInt(m[1], 10))) : 0)
-  }
-  if (values.every((v) => v === 0)) return null
-  return values
-}
-
-/* ---------- 轻量代码块格式化 ---------- */
-
-// 修复 Java 关键字粘连（SSE 流有时会把空格吃掉）
-function fixKeywordSpaces(code) {
-  return code
-    .replace(/\bpublic\b(?=class\b)/g, 'public ')
-    .replace(/\bpublic\b(?=static\b)/g, 'public ')
-    .replace(/\bstatic\b(?=void\b)/g, 'static ')
-    .replace(/\bvoid\b(?=main\b)/g, 'void ')
-    .replace(/\bprivate\b(?=static\b)/g, 'private ')
-    .replace(/\bprivate\b(?=void\b)/g, 'private ')
-    .replace(/\breturn\b(?=[a-zA-Z])/g, 'return ')
-    .replace(/\bString\[\](?=args)/g, 'String[] ')
-    .replace(/\bnew\b(?=[A-Z])/g, 'new ')
-    .replace(/\bclass\b(?=[A-Z])/g, 'class ')
-    .replace(/\bimport\b(?=[a-z])/g, 'import ')
-    .replace(/\bpackage\b(?=[a-z])/g, 'package ')
-    .replace(/\bfinal\b(?=[a-zA-Z])/g, 'final ')
-    .replace(/\bint\b(?=[a-zA-Z])/g, 'int ')
-}
-
-// 如果代码缺少换行（全部挤在一行），在 { } ; 后补换行
-function addMissingNewlines(code) {
-  // 如果代码已经有多行且平均行长 < 120，说明格式正常，不处理
-  const lines = code.split('\n').filter((l) => l.trim())
-  if (lines.length > 3) return code
-  // 只处理明显挤在一起的情况
-  return code
-    .replace(/\{(?!\s*\n)/g, '{\n')
-    .replace(/\}(?!\s*[\n\}])/g, '}\n')
-    .replace(/;(?!\s*[\n\}])/g, ';\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim()
-}
-
-// 基础缩进（按 { } 层级）
-function autoIndent(code) {
-  const lines = code.split('\n')
-  let level = 0
-  const out = []
-  for (const raw of lines) {
-    const trimmed = raw.trim()
-    if (!trimmed) {
-      out.push('')
-      continue
-    }
-    const closes = (trimmed.match(/\}/g) || []).length
-    const opens = (trimmed.match(/\{/g) || []).length
-    if (closes > 0) level = Math.max(0, level - closes)
-    out.push('    '.repeat(level) + trimmed)
-    level += opens
-  }
-  return out.join('\n')
-}
-
-// 处理单个代码块
-function formatCodeBlock(code, lang) {
-  let c = code
-  if (lang === 'java' || lang === '' || !lang) {
-    c = fixKeywordSpaces(c)
-  }
-  c = addMissingNewlines(c)
-  c = autoIndent(c)
-  return c
-}
-
-/* ---------- Markdown 规范化 ---------- */
-
-function normalizeMarkdown(text) {
-  if (!text || typeof text !== 'string') return ''
-  let s = text
-
-  // 处理代码块内容
-  s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-    const formatted = formatCodeBlock(code.trim(), lang)
-    return '```' + (lang || '') + '\n' + formatted + '\n```'
-  })
-
-  s = s
-    .replace(/—/g, '\n\n')
-    .replace(/([^\n])(```)/g, '$1\n\n$2')
-    .replace(/([^\n])(####)/g, '$1\n\n$2')
-    .replace(/([^\n])(###)/g, '$1\n\n$2')
-    .replace(/([^\n])(##)/g, '$1\n\n$2')
-    .replace(/([^\n])(#)([^\s#\n])/g, '$1\n\n$2 $3')
-    .replace(/([^\n])(-\s*\*\*)/g, '$1\n\n$2')
-    .replace(/([^\n])(\d+\.\s*\*\*)/g, '$1\n\n$2')
-  s = s.replace(/\n---\s*$/gm, '\n').replace(/^\s*---\s*$/gm, '')
-  s = s.replace(/\n{3,}/g, '\n\n').trim()
-  s = s.replace(/(#{1,4})([^\s#\n])/g, '$1 $2')
-  s = s.replace(/(\n)\s*-\s*([^\s\-])/g, '$1- $2')
-  s = s.replace(/([^\n#])#+#\s*$/gm, '$1')
-  s = s.replace(/^\s*#+#\s*$/gm, '')
-  s = s.replace(/^\s*(-{3,}|_{3,})\s*$/gm, '')
-  s = s.replace(/\n{3,}/g, '\n\n').trim()
-  return s
+// 评分维度分数样式
+function dimScoreClass(score) {
+  if (score >= 8) return 'dim-score-high'
+  if (score >= 5) return 'dim-score-mid'
+  return 'dim-score-low'
 }
 
 const LANGUAGE_OPTIONS = {
@@ -230,56 +190,21 @@ let monacoInstance = null
 const runLoading = ref(false)
 const runResult = ref(null)
 const scoreLoading = ref(false)
-const scoreContent = ref('')
+const scoreData = ref(null)
 const optimizeDirection = ref('')
 const optimizeLoading = ref(false)
-const optimizeContent = ref('')
-let scoreCancel = null
-let optimizeCancel = null
+const optimizeData = ref(null)
 
-// AI评分：直接用 v-md-preview 渲染，debounce 控制更新频率
-const scoreText = ref('')
-let scoreDebounceTimer = null
-function flushScoreText() {
-  scoreDebounceTimer && clearTimeout(scoreDebounceTimer)
-  scoreText.value = normalizeMarkdown(scoreContent.value)
-}
-watch(scoreContent, (val) => {
-  if (!val) {
-    scoreText.value = ''
-    return
-  }
-  scoreDebounceTimer && clearTimeout(scoreDebounceTimer)
-  if (!scoreText.value) flushScoreText()
-  else scoreDebounceTimer = setTimeout(flushScoreText, 150)
-})
-watch(scoreLoading, (v) => {
-  if (!v) flushScoreText()
-})
-
-// AI优化建议：使用 v-md-preview 渲染，与评分一致
-const optimizeText = ref('')
-let optimizeDebounceTimer = null
-function flushOptimizeText() {
-  optimizeDebounceTimer && clearTimeout(optimizeDebounceTimer)
-  optimizeText.value = normalizeMarkdown(optimizeContent.value)
-}
-watch(optimizeContent, (val) => {
-  if (!val) {
-    optimizeText.value = ''
-    return
-  }
-  optimizeDebounceTimer && clearTimeout(optimizeDebounceTimer)
-  if (!optimizeText.value) flushOptimizeText()
-  else optimizeDebounceTimer = setTimeout(flushOptimizeText, 150)
-})
-watch(optimizeLoading, (v) => {
-  if (!v) flushOptimizeText()
+// 雷达图数据：直接从 JSON 结构化数据提取
+const scoreRadarData = computed(() => {
+  if (!scoreData.value || !scoreData.value.dimensions) return null
+  const values = scoreData.value.dimensions.map((d) => d.score || 0)
+  if (values.every((v) => v === 0)) return null
+  return values
 })
 
 const scoreChartRef = ref(null)
 let scoreChartInstance = null
-const scoreRadarData = computed(() => parseScoreFromContent(scoreContent.value))
 
 function initScoreRadarChart() {
   if (!scoreChartRef.value || !scoreRadarData.value) return
@@ -470,23 +395,23 @@ function handleScore() {
     ElMessage.warning('请先输入代码')
     return
   }
-  if (scoreCancel) scoreCancel()
-  scoreContent.value = ''
+  scoreData.value = null
   scoreLoading.value = true
-  scoreCancel = codeScoreStream(
-    { language: language.value, code },
-    (chunk) => {
-      scoreContent.value += chunk
-      nextTick(() => {})
-    },
-    () => {
+
+  codeScore({ language: language.value, code })
+    .then((res) => {
+      if (res.code === 200 && res.data) {
+        scoreData.value = res.data
+      } else {
+        ElMessage.error(res.msg || 'AI 评分失败，请稍后重试')
+      }
+    })
+    .catch((err) => {
+      ElMessage.error('代码评分请求失败: ' + (err.message || '网络异常'))
+    })
+    .finally(() => {
       scoreLoading.value = false
-    },
-    () => {
-      scoreLoading.value = false
-      scoreCancel = null
-    },
-  )
+    })
 }
 
 function handleOptimize() {
@@ -500,23 +425,23 @@ function handleOptimize() {
     ElMessage.warning('请输入优化方向')
     return
   }
-  if (optimizeCancel) optimizeCancel()
-  optimizeContent.value = ''
+  optimizeData.value = null
   optimizeLoading.value = true
-  optimizeCancel = codeOptimizeStream(
-    { language: language.value, code, direction: dir },
-    (chunk) => {
-      optimizeContent.value += chunk
-      nextTick(() => {})
-    },
-    () => {
+  codeOptimize({ language: language.value, code, direction: dir })
+    .then((res) => {
+      if (res.code === 200 && res.data) {
+        optimizeData.value = res.data
+      } else {
+        ElMessage.error(res.msg || 'AI 优化建议生成失败')
+      }
+    })
+    .catch((err) => {
+      console.error('AI 优化建议异常:', err)
+      ElMessage.error('AI 优化建议请求失败，请稍后重试')
+    })
+    .finally(() => {
       optimizeLoading.value = false
-    },
-    () => {
-      optimizeLoading.value = false
-      optimizeCancel = null
-    },
-  )
+    })
 }
 
 const EDITOR_MIN_HEIGHT = 120
@@ -555,8 +480,6 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onScoreChartResize)
-  if (scoreCancel) scoreCancel()
-  if (optimizeCancel) optimizeCancel()
   if (editor) editor.dispose()
   if (scoreChartInstance) {
     scoreChartInstance.dispose()
@@ -638,120 +561,211 @@ onBeforeUnmount(() => {
   border-radius: 6px;
 }
 
-/* === v-md-preview 深色主题适配（AI评分区域） === */
-.ai-md-wrap {
-  isolation: isolate;
-  color: #e0f0ff;
-  font-size: 12px;
-  line-height: 1.6;
+/* ========== 结构化评分卡片样式 ========== */
+
+.score-loading-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px 0;
 }
 
-.ai-md-wrap :deep(.v-md-editor-preview),
-.ai-md-wrap :deep(.github-markdown-body) {
-  background: transparent !important;
-  color: #e0f0ff !important;
-  font-size: 12px;
-  line-height: 1.6;
-  padding: 0 !important;
-}
-
-.ai-md-wrap :deep(.github-markdown-body h1),
-.ai-md-wrap :deep(.github-markdown-body h2),
-.ai-md-wrap :deep(.github-markdown-body h3),
-.ai-md-wrap :deep(.github-markdown-body h4) {
-  color: #00e5ff;
-  margin: 12px 0 8px;
-  border: none !important;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.ai-md-wrap :deep(.github-markdown-body h1) {
+.score-loading-text {
+  color: #9fe8ff;
   font-size: 14px;
 }
 
-.ai-md-wrap :deep(.github-markdown-body p),
-.ai-md-wrap :deep(.github-markdown-body li) {
+.score-result {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.score-dimensions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.score-dim-card {
+  background: rgba(0, 229, 255, 0.04);
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  border-radius: 8px;
+  padding: 12px 16px;
+  transition: border-color 0.2s;
+}
+
+.score-dim-card:hover {
+  border-color: rgba(0, 229, 255, 0.4);
+}
+
+.dim-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.dim-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #00e5ff;
+}
+
+.dim-score {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.dim-score small {
   font-size: 12px;
-  margin: 4px 0;
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+.dim-score-high {
+  color: #7dffcf;
+}
+
+.dim-score-mid {
+  color: #ffab40;
+}
+
+.dim-score-low {
+  color: #ff6b6b;
+}
+
+.dim-comment {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #b8e0ff;
+}
+
+.score-suggestion {
+  background: rgba(0, 229, 255, 0.04);
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.suggestion-header {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #7dffcf;
+  background: rgba(125, 255, 207, 0.06);
+  border-bottom: 1px solid rgba(125, 255, 207, 0.1);
+}
+
+.suggestion-body {
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.8;
   color: #e0f0ff;
+  white-space: pre-wrap;
 }
 
-.ai-md-wrap :deep(.github-markdown-body strong) {
-  color: #e0f0ff;
-}
-
-.ai-md-wrap :deep(.github-markdown-body ul) {
-  padding-left: 20px;
-}
-
-.ai-md-wrap :deep(.github-markdown-body hr) {
-  display: none !important;
-}
-
-/* 代码块 wrapper（v-md-pre-wrapper）覆盖白色背景 */
-.ai-md-wrap :deep(.github-markdown-body div[class*='v-md-pre-wrapper']) {
-  background-color: rgba(0, 229, 255, 0.1) !important;
-  background: rgba(0, 229, 255, 0.1) !important;
-  border-radius: 6px;
-}
-
-.ai-md-wrap :deep(.github-markdown-body div[class*='v-md-pre-wrapper']:after) {
-  background-color: rgba(0, 229, 255, 0.1) !important;
-}
-
-.ai-md-wrap :deep(.github-markdown-body pre),
-.ai-md-wrap :deep(.github-markdown-body code),
-.ai-md-wrap :deep(.github-markdown-body tt) {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace !important;
-  background: rgba(0, 229, 255, 0.1) !important;
-  background-color: rgba(0, 229, 255, 0.1) !important;
-  color: #7dffcf !important;
+/* === AI 优化建议卡片样式 === */
+.optimize-summary {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  background: rgba(64, 158, 255, 0.08);
+  border-left: 3px solid #409eff;
   border-radius: 4px;
+  color: #b8e6ff;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
-.ai-md-wrap :deep(.github-markdown-body pre) {
-  padding: 10px;
-  overflow-x: auto;
-  white-space: pre-wrap !important;
+.optimize-section {
+  margin-bottom: 16px;
+}
+
+.optimize-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #00e5ff;
+  margin-bottom: 10px;
+}
+
+.optimize-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.highlight-tag {
+  font-size: 12px;
+}
+
+.suggestion-card {
+  margin-bottom: 10px;
+  background: rgba(0, 229, 255, 0.04) !important;
+  border: 1px solid rgba(0, 229, 255, 0.15) !important;
+}
+
+.suggestion-card :deep(.el-card__body) {
+  padding: 14px !important;
+}
+
+.suggestion-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.suggestion-title-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0f0ff;
+}
+
+.suggestion-row {
+  margin-bottom: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #cee8ff;
+}
+
+.suggestion-label {
+  color: #9fe8ff;
+  font-weight: 500;
+}
+
+.suggestion-text {
+  color: #cee8ff;
+}
+
+.suggestion-code {
+  margin-top: 8px;
+}
+
+.code-label {
+  font-size: 12px;
+  color: #78909c;
+  margin-bottom: 4px;
+}
+
+.code-block {
+  background: rgba(0, 229, 255, 0.08);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  color: #7dffcf;
+  white-space: pre-wrap;
   word-break: break-word;
+  overflow-x: auto;
+  margin: 0;
 }
 
-.ai-md-wrap :deep(.github-markdown-body pre code),
-.ai-md-wrap :deep(.github-markdown-body pre tt),
-.ai-md-wrap :deep(.github-markdown-body pre code *) {
-  background: transparent !important;
-  background-color: transparent !important;
-  color: #7dffcf !important;
-}
-
-.ai-md-wrap :deep(.github-markdown-body .hljs),
-.ai-md-wrap :deep(.github-markdown-body [class*='hljs']),
-.ai-md-wrap :deep(.github-markdown-body pre .hljs),
-.ai-md-wrap :deep(.github-markdown-body pre [class*='hljs']) {
-  background: rgba(0, 229, 255, 0.1) !important;
-  background-color: rgba(0, 229, 255, 0.1) !important;
-  color: #7dffcf !important;
-}
-
-/* hljs 语法高亮各 token 颜色 */
-.ai-md-wrap :deep(.hljs-keyword),
-.ai-md-wrap :deep(.hljs-type),
-.ai-md-wrap :deep(.hljs-built_in) {
-  color: #00e5ff !important;
-}
-.ai-md-wrap :deep(.hljs-string),
-.ai-md-wrap :deep(.hljs-number),
-.ai-md-wrap :deep(.hljs-literal) {
-  color: #ffab40 !important;
-}
-.ai-md-wrap :deep(.hljs-comment),
-.ai-md-wrap :deep(.hljs-meta) {
-  color: #78909c !important;
-}
-.ai-md-wrap :deep(.hljs-title),
-.ai-md-wrap :deep(.hljs-function) {
-  color: #7dffcf !important;
+.optimized-code {
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .run-result pre {
