@@ -50,7 +50,7 @@
       </template>
       <div v-if="scoreRadarData" ref="scoreChartRef" class="score-radar-chart"></div>
       <div class="ai-content">
-        <div v-if="scoreContent" :key="'score-'+scoreContent.length" class="ai-md-wrap markdown-body" v-html="scoreRendered"></div>
+        <v-md-preview v-if="scoreContent" :text="scoreText" class="ai-md-wrap" />
         <span v-else-if="scoreLoading" class="placeholder">正在接收 AI 评分...</span>
         <span v-else class="placeholder"
           >点击「多维度评分」获取功能、健壮性、工程能力等维度点评</span
@@ -75,7 +75,7 @@
         </div>
       </template>
       <div class="ai-content">
-        <div v-if="optimizeContent" :key="'opt-'+optimizeContent.length" class="ai-md-wrap markdown-body" v-html="optimizeRendered"></div>
+        <v-md-preview v-if="optimizeContent" :text="optimizeText" class="ai-md-wrap" />
         <span v-else-if="optimizeLoading" class="placeholder">正在接收优化建议...</span>
         <span v-else class="placeholder">输入优化方向后点击「生成建议」</span>
       </div>
@@ -87,7 +87,6 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { VideoPlay, Download } from '@element-plus/icons-vue'
-import { marked } from 'marked'
 import * as echarts from 'echarts'
 import { runCode, codeScoreStream, codeOptimizeStream } from '@/api/programming'
 
@@ -103,7 +102,10 @@ function parseScoreFromContent(text) {
   if (!text || typeof text !== 'string') return null
   const values = []
   for (const ind of RADAR_INDICATORS) {
-    const re = new RegExp(ind.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[^0-9]*?(\\d+)\\s*/\\s*10', 'i')
+    const re = new RegExp(
+      ind.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[^0-9]*?(\\d+)\\s*/\\s*10',
+      'i',
+    )
     const m = text.match(re)
     values.push(m ? Math.min(10, Math.max(0, parseInt(m[1], 10))) : 0)
   }
@@ -111,107 +113,84 @@ function parseScoreFromContent(text) {
   return values
 }
 
-marked.setOptions({ breaks: true, gfm: true })
+/* ---------- 轻量代码块格式化 ---------- */
 
-function markdownToHtml(md) {
-  if (!md || typeof md !== 'string') return ''
-  let s = md
-  const backtickCount = (s.match(/```/g) || []).length
-  if (backtickCount % 2 !== 0) {
-    const lastOpen = s.lastIndexOf('```')
-    const afterOpen = s.slice(lastOpen + 3)
-    const sectionMatch = afterOpen.match(/\n\n(#+\s|\d+\.\s|\*\*[^*\s])/)
-    if (sectionMatch) {
-      const insertAt = lastOpen + 3 + sectionMatch.index
-      s = s.slice(0, insertAt) + '\n```' + s.slice(insertAt)
-    } else {
-      s += '\n```'
-    }
-  }
-  try {
-    const html = marked.parse(s)
-    return typeof html === 'string' ? html : ''
-  } catch {
-    return '<pre class="markdown-body">' + escapeHtml(s) + '</pre>'
-  }
-}
-
-function escapeHtml(str) {
-  const div = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
-  return str.replace(/[&<>"']/g, (c) => div[c] || c)
-}
-
-function fixCodeBlockSpaces(code) {
+// 修复 Java 关键字粘连（SSE 流有时会把空格吃掉）
+function fixKeywordSpaces(code) {
   return code
-    .replace(/publicclass/g, 'public class')
-    .replace(/publicstatic/g, 'public static')
-    .replace(/staticvoid/g, 'static void')
-    .replace(/voidmain/g, 'void main')
-    .replace(/class\{/g, 'class {')
-    .replace(/main\(/g, 'main (')
-    .replace(/String\[\]args/g, 'String[] args')
-    .replace(/\)\?/g, ') ?')
-    .replace(/\?args/g, '? args')
-    .replace(/\}\s*\}/g, '} }')
-    .replace(/;\s*\}/g, '; }')
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/([\)\]\}])([a-zA-Z\(\[\{])/g, '$1 $2')
-    .replace(/([a-zA-Z0-9"\)])([\[\(\{\;])/g, '$1 $2')
-    .replace(/([^=\s])=([^=\s])/g, '$1 = $2')
-    .replace(/([^\s>])>([^\s=])/g, '$1 > $2')
-    .replace(/([^\s<])<([^\s=])/g, '$1 < $2')
+    .replace(/\bpublic\b(?=class\b)/g, 'public ')
+    .replace(/\bpublic\b(?=static\b)/g, 'public ')
+    .replace(/\bstatic\b(?=void\b)/g, 'static ')
+    .replace(/\bvoid\b(?=main\b)/g, 'void ')
+    .replace(/\bprivate\b(?=static\b)/g, 'private ')
+    .replace(/\bprivate\b(?=void\b)/g, 'private ')
+    .replace(/\breturn\b(?=[a-zA-Z])/g, 'return ')
+    .replace(/\bString\[\](?=args)/g, 'String[] ')
+    .replace(/\bnew\b(?=[A-Z])/g, 'new ')
+    .replace(/\bclass\b(?=[A-Z])/g, 'class ')
+    .replace(/\bimport\b(?=[a-z])/g, 'import ')
+    .replace(/\bpackage\b(?=[a-z])/g, 'package ')
+    .replace(/\bfinal\b(?=[a-zA-Z])/g, 'final ')
+    .replace(/\bint\b(?=[a-zA-Z])/g, 'int ')
 }
 
-function fixCodeBlockJoinBrokenLines(code) {
-  return code.replace(/([a-zA-Z0-9"\)])\n([a-zA-Z0-9");])/g, '$1$2')
-}
-
-function fixCodeBlockIndent(code) {
-  const lines = code.split('\n').map((l) => l.trimEnd())
-  let level = 0
-  const out = []
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
-    const trimmed = line.trim()
-    if (!trimmed) { out.push(''); continue }
-    const nClose = (trimmed.match(/\}/g) || []).length
-    const nOpen = (trimmed.match(/\{/g) || []).length
-    if (nClose > 0) level = Math.max(0, level - nClose)
-    out.push('    '.repeat(level) + trimmed)
-    level += nOpen
-  }
-  return out.join('\n')
-}
-
-function fixCodeBlockNewlines(code) {
-  if (/\n.{10,}/.test(code)) return code
+// 如果代码缺少换行（全部挤在一行），在 { } ; 后补换行
+function addMissingNewlines(code) {
+  // 如果代码已经有多行且平均行长 < 120，说明格式正常，不处理
+  const lines = code.split('\n').filter((l) => l.trim())
+  if (lines.length > 3) return code
+  // 只处理明显挤在一起的情况
   return code
-    .replace(/([;}])\s*(\/\*\*)/g, '$1\n\n$2')
-    .replace(/(\/\*\*)([^\s*\n])/g, '$1\n* $2')
-    .replace(/(\/\/[^\n]*)([a-zA-Z])/g, '$1\n$2')
-    .replace(/(\*\/)\s*([a-zA-Z])/g, '$1\n$2')
-    .replace(/\*([^*/\n])/g, '\n*$1')
-    .replace(/\*\/\s*/g, '*/\n')
-    .replace(/\}\s*/g, '}\n')
-    .replace(/\{\s*/g, '{\n')
-    .replace(/;\s+/g, ';\n')
+    .replace(/\{(?!\s*\n)/g, '{\n')
+    .replace(/\}(?!\s*[\n\}])/g, '}\n')
+    .replace(/;(?!\s*[\n\}])/g, ';\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
 }
 
+// 基础缩进（按 { } 层级）
+function autoIndent(code) {
+  const lines = code.split('\n')
+  let level = 0
+  const out = []
+  for (const raw of lines) {
+    const trimmed = raw.trim()
+    if (!trimmed) {
+      out.push('')
+      continue
+    }
+    const closes = (trimmed.match(/\}/g) || []).length
+    const opens = (trimmed.match(/\{/g) || []).length
+    if (closes > 0) level = Math.max(0, level - closes)
+    out.push('    '.repeat(level) + trimmed)
+    level += opens
+  }
+  return out.join('\n')
+}
+
+// 处理单个代码块
+function formatCodeBlock(code, lang) {
+  let c = code
+  if (lang === 'java' || lang === '' || !lang) {
+    c = fixKeywordSpaces(c)
+  }
+  c = addMissingNewlines(c)
+  c = autoIndent(c)
+  return c
+}
+
+/* ---------- Markdown 规范化 ---------- */
+
 function normalizeMarkdown(text) {
   if (!text || typeof text !== 'string') return ''
-  let s = text.replace(/(\*\*)?(示例|例如|示例代码)(\*\*)?[：:]\s*\n?\s*(?<!`)(java|python|c)(?!`)\s*(?=[\w#\s])/gi, (_, open, label, close, lang) => {
-    const prefix = (open || '') + (label || '') + (close || '') + '：'
-    return prefix + '\n\n```' + (lang || 'java') + '\n'
-  })
+  let s = text
+
+  // 处理代码块内容
   s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-    const c = fixCodeBlockSpaces(code)
-    const c2 = fixCodeBlockJoinBrokenLines(c)
-    const c3 = fixCodeBlockNewlines(c2)
-    const c4 = (lang === 'java' || !lang) ? fixCodeBlockIndent(c3) : c3
-    return '```' + (lang || '') + '\n' + c4 + '\n```'
+    const formatted = formatCodeBlock(code.trim(), lang)
+    return '```' + (lang || '') + '\n' + formatted + '\n```'
   })
+
   s = s
     .replace(/—/g, '\n\n')
     .replace(/([^\n])(```)/g, '$1\n\n$2')
@@ -227,7 +206,7 @@ function normalizeMarkdown(text) {
   s = s.replace(/(\n)\s*-\s*([^\s\-])/g, '$1- $2')
   s = s.replace(/([^\n#])#+#\s*$/gm, '$1')
   s = s.replace(/^\s*#+#\s*$/gm, '')
-  s = s.replace(/^\s*(-{2,}|\*{2,}|_{2,})\s*$/gm, '')
+  s = s.replace(/^\s*(-{3,}|_{3,})\s*$/gm, '')
   s = s.replace(/\n{3,}/g, '\n\n').trim()
   return s
 }
@@ -258,40 +237,45 @@ const optimizeContent = ref('')
 let scoreCancel = null
 let optimizeCancel = null
 
-const scoreMarkdown = computed(() => normalizeMarkdown(scoreContent.value))
-const optimizeMarkdown = computed(() => normalizeMarkdown(optimizeContent.value))
-const displayScoreHtml = ref('')
-const displayOptimizeHtml = ref('')
+// AI评分：直接用 v-md-preview 渲染，debounce 控制更新频率
+const scoreText = ref('')
 let scoreDebounceTimer = null
-let optimizeDebounceTimer = null
-
-function flushScoreDisplay() {
+function flushScoreText() {
   scoreDebounceTimer && clearTimeout(scoreDebounceTimer)
-  displayScoreHtml.value = markdownToHtml(scoreMarkdown.value)
+  scoreText.value = normalizeMarkdown(scoreContent.value)
 }
-function flushOptimizeDisplay() {
-  optimizeDebounceTimer && clearTimeout(optimizeDebounceTimer)
-  displayOptimizeHtml.value = markdownToHtml(optimizeMarkdown.value)
-}
-
 watch(scoreContent, (val) => {
-  if (!val) { displayScoreHtml.value = ''; return }
+  if (!val) {
+    scoreText.value = ''
+    return
+  }
   scoreDebounceTimer && clearTimeout(scoreDebounceTimer)
-  if (!displayScoreHtml.value) flushScoreDisplay()
-  else scoreDebounceTimer = setTimeout(flushScoreDisplay, 150)
+  if (!scoreText.value) flushScoreText()
+  else scoreDebounceTimer = setTimeout(flushScoreText, 150)
 })
-watch(scoreLoading, (v) => { if (!v) flushScoreDisplay() })
+watch(scoreLoading, (v) => {
+  if (!v) flushScoreText()
+})
 
-watch(optimizeContent, (val) => {
-  if (!val) { displayOptimizeHtml.value = ''; return }
+// AI优化建议：使用 v-md-preview 渲染，与评分一致
+const optimizeText = ref('')
+let optimizeDebounceTimer = null
+function flushOptimizeText() {
   optimizeDebounceTimer && clearTimeout(optimizeDebounceTimer)
-  if (!displayOptimizeHtml.value) flushOptimizeDisplay()
-  else optimizeDebounceTimer = setTimeout(flushOptimizeDisplay, 150)
+  optimizeText.value = normalizeMarkdown(optimizeContent.value)
+}
+watch(optimizeContent, (val) => {
+  if (!val) {
+    optimizeText.value = ''
+    return
+  }
+  optimizeDebounceTimer && clearTimeout(optimizeDebounceTimer)
+  if (!optimizeText.value) flushOptimizeText()
+  else optimizeDebounceTimer = setTimeout(flushOptimizeText, 150)
 })
-watch(optimizeLoading, (v) => { if (!v) flushOptimizeDisplay() })
-
-const scoreRendered = computed(() => displayScoreHtml.value)
-const optimizeRendered = computed(() => displayOptimizeHtml.value)
+watch(optimizeLoading, (v) => {
+  if (!v) flushOptimizeText()
+})
 
 const scoreChartRef = ref(null)
 let scoreChartInstance = null
@@ -654,6 +638,7 @@ onBeforeUnmount(() => {
   border-radius: 6px;
 }
 
+/* === v-md-preview 深色主题适配（AI评分区域） === */
 .ai-md-wrap {
   isolation: isolate;
   color: #e0f0ff;
@@ -661,131 +646,112 @@ onBeforeUnmount(() => {
   line-height: 1.6;
 }
 
-.ai-md-wrap :deep(.v-md-preview-wrapper),
-.ai-md-wrap :deep(.v-md-preview) {
+.ai-md-wrap :deep(.v-md-editor-preview),
+.ai-md-wrap :deep(.github-markdown-body) {
   background: transparent !important;
+  color: #e0f0ff !important;
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 0 !important;
 }
 
-.ai-md-wrap :deep(.v-md-preview-wrapper),
-.ai-md-wrap :deep(.v-md-preview),
-.ai-md-wrap :deep(div[class*="v-md"]),
-.ai-md-wrap :deep(blockquote),
-.ai-md-wrap :deep(p),
-.ai-md-wrap :deep(li),
-.ai-md-wrap :deep(div) {
-  background: transparent !important;
-  background-color: transparent !important;
-}
-
-.ai-md-wrap :deep(.v-md-preview-wrapper) {
-  color: inherit;
-  font-size: inherit;
-  line-height: inherit;
-}
-
-.ai-md-wrap :deep(hr),
-.ai-md-wrap :deep(.v-md-preview-wrapper hr) {
-  display: none !important;
-}
-
-.ai-md-wrap :deep(.v-md-preview-wrapper h1),
-.ai-md-wrap :deep(.v-md-preview-wrapper h2),
-.ai-md-wrap :deep(.v-md-preview-wrapper h3),
-.ai-md-wrap :deep(.v-md-preview-wrapper h4),
-.ai-md-wrap :deep(.v-md-preview-wrapper p),
-.ai-md-wrap :deep(.v-md-preview h1),
-.ai-md-wrap :deep(.v-md-preview h2),
-.ai-md-wrap :deep(.v-md-preview h3),
-.ai-md-wrap :deep(.v-md-preview h4),
-.ai-md-wrap :deep(.v-md-preview p) {
-  border: none !important;
-  border-bottom: none !important;
-}
-
-.ai-md-wrap :deep(.v-md-preview-wrapper h1),
-.ai-md-wrap :deep(.v-md-preview-wrapper h2),
-.ai-md-wrap :deep(.v-md-preview-wrapper h3) {
+.ai-md-wrap :deep(.github-markdown-body h1),
+.ai-md-wrap :deep(.github-markdown-body h2),
+.ai-md-wrap :deep(.github-markdown-body h3),
+.ai-md-wrap :deep(.github-markdown-body h4) {
   color: #00e5ff;
   margin: 12px 0 8px;
-}
-
-.ai-md-wrap.markdown-body,
-.ai-md-wrap.markdown-body * {
-  color: #e0f0ff;
-}
-
-.ai-md-wrap.markdown-body pre,
-.ai-md-wrap.markdown-body pre *,
-.ai-md-wrap.markdown-body code,
-.ai-md-wrap.markdown-body code * {
-  color: #7dffcf !important;
-}
-
-.ai-md-wrap.markdown-body strong {
-  color: #e0f0ff;
-}
-
-.ai-md-wrap.markdown-body h1,
-.ai-md-wrap.markdown-body h2,
-.ai-md-wrap.markdown-body h3,
-.ai-md-wrap.markdown-body h4 {
-  color: #00e5ff;
-  margin: 8px 0 4px;
-  border: none;
+  border: none !important;
   font-size: 13px;
   font-weight: 600;
 }
 
-.ai-md-wrap.markdown-body h1 { font-size: 14px; }
-.ai-md-wrap.markdown-body p,
-.ai-md-wrap.markdown-body li {
+.ai-md-wrap :deep(.github-markdown-body h1) {
+  font-size: 14px;
+}
+
+.ai-md-wrap :deep(.github-markdown-body p),
+.ai-md-wrap :deep(.github-markdown-body li) {
   font-size: 12px;
   margin: 4px 0;
+  color: #e0f0ff;
 }
 
-.ai-md-wrap.markdown-body pre,
-.ai-md-wrap.markdown-body code {
-  background: rgba(0, 229, 255, 0.1);
-  color: #7dffcf;
-  border-radius: 4px;
+.ai-md-wrap :deep(.github-markdown-body strong) {
+  color: #e0f0ff;
 }
 
-.ai-md-wrap.markdown-body pre,
-.ai-md-wrap.markdown-body code {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
-  white-space: pre-wrap;
-  word-break: break-word;
+.ai-md-wrap :deep(.github-markdown-body ul) {
+  padding-left: 20px;
 }
 
-.ai-md-wrap.markdown-body pre {
-  padding: 10px;
-  overflow-x: auto;
+.ai-md-wrap :deep(.github-markdown-body hr) {
+  display: none !important;
 }
 
-.ai-md-wrap.markdown-body hr {
-  display: none;
+/* 代码块 wrapper（v-md-pre-wrapper）覆盖白色背景 */
+.ai-md-wrap :deep(.github-markdown-body div[class*='v-md-pre-wrapper']) {
+  background-color: rgba(0, 229, 255, 0.1) !important;
+  background: rgba(0, 229, 255, 0.1) !important;
+  border-radius: 6px;
 }
 
-.ai-md-wrap :deep(pre),
-.ai-md-wrap :deep(code),
-.ai-md-wrap :deep(.hljs),
-.ai-md-wrap :deep([class*="hljs"]) {
+.ai-md-wrap :deep(.github-markdown-body div[class*='v-md-pre-wrapper']:after) {
+  background-color: rgba(0, 229, 255, 0.1) !important;
+}
+
+.ai-md-wrap :deep(.github-markdown-body pre),
+.ai-md-wrap :deep(.github-markdown-body code),
+.ai-md-wrap :deep(.github-markdown-body tt) {
   font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace !important;
-  white-space: pre-wrap !important;
-  word-break: break-word;
   background: rgba(0, 229, 255, 0.1) !important;
   background-color: rgba(0, 229, 255, 0.1) !important;
   color: #7dffcf !important;
   border-radius: 4px;
 }
 
-.ai-md-wrap :deep(pre) {
+.ai-md-wrap :deep(.github-markdown-body pre) {
   padding: 10px;
   overflow-x: auto;
+  white-space: pre-wrap !important;
+  word-break: break-word;
 }
 
-.ai-md-wrap :deep(.v-md-preview-wrapper ul) {
-  padding-left: 20px;
+.ai-md-wrap :deep(.github-markdown-body pre code),
+.ai-md-wrap :deep(.github-markdown-body pre tt),
+.ai-md-wrap :deep(.github-markdown-body pre code *) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #7dffcf !important;
+}
+
+.ai-md-wrap :deep(.github-markdown-body .hljs),
+.ai-md-wrap :deep(.github-markdown-body [class*='hljs']),
+.ai-md-wrap :deep(.github-markdown-body pre .hljs),
+.ai-md-wrap :deep(.github-markdown-body pre [class*='hljs']) {
+  background: rgba(0, 229, 255, 0.1) !important;
+  background-color: rgba(0, 229, 255, 0.1) !important;
+  color: #7dffcf !important;
+}
+
+/* hljs 语法高亮各 token 颜色 */
+.ai-md-wrap :deep(.hljs-keyword),
+.ai-md-wrap :deep(.hljs-type),
+.ai-md-wrap :deep(.hljs-built_in) {
+  color: #00e5ff !important;
+}
+.ai-md-wrap :deep(.hljs-string),
+.ai-md-wrap :deep(.hljs-number),
+.ai-md-wrap :deep(.hljs-literal) {
+  color: #ffab40 !important;
+}
+.ai-md-wrap :deep(.hljs-comment),
+.ai-md-wrap :deep(.hljs-meta) {
+  color: #78909c !important;
+}
+.ai-md-wrap :deep(.hljs-title),
+.ai-md-wrap :deep(.hljs-function) {
+  color: #7dffcf !important;
 }
 
 .run-result pre {
@@ -820,7 +786,4 @@ onBeforeUnmount(() => {
   flex: 1;
   max-width: 320px;
 }
-
-
-
 </style>
