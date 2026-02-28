@@ -5,6 +5,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import * as proctorApi from '@/api/proctor'
+import { PROCTOR_CONFIG_DEFAULTS } from '@/constants/proctor'
 
 export const useProctorStore = defineStore('proctor', () => {
   // ========== 状态定义 ==========
@@ -40,8 +41,8 @@ export const useProctorStore = defineStore('proctor', () => {
   // 监考配置
   const proctorConfig = ref({
     enabled: false,
-    websocketUrl: 'ws://localhost:8000/ws/monitor',
-    frameInterval: 1000, // 发送帧间隔（毫秒）
+    websocketUrl: PROCTOR_CONFIG_DEFAULTS.websocketUrl,
+    frameInterval: 1000,
     maxViolations: 10, // 最大违规次数（超过则强制交卷）
     autoSubmitOnMaxViolations: true,
     violationTypes: {

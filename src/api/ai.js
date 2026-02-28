@@ -4,7 +4,7 @@
 import request from '@/utils/request'
 import { local } from '@/utils/storage'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? 'http://localhost:8080' : '')
 
 /**
  * 同步解析题目

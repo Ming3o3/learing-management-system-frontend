@@ -87,6 +87,7 @@ export function confirmVideoUpload(contentId) {
   return request({
     url: `/course/content/video/confirm/${contentId}`,
     method: 'post',
+    timeout: 120000,
   })
 }
 
@@ -101,6 +102,7 @@ export function uploadVideo(formData, onUploadProgress) {
     url: '/course/content/video/upload',
     method: 'post',
     data: formData,
+    timeout: 300000,
     headers: {
       'Content-Type': 'multipart/form-data',
     },
