@@ -104,6 +104,15 @@ export function getSubmitList(homeworkId) {
 }
 
 /**
+ * 查询作业的提交列表（教师批改）
+ * @param {Number} homeworkId 作业ID
+ * @returns {Promise}
+ */
+export function getHomeworkSubmissions(homeworkId) {
+  return getSubmitList(homeworkId)
+}
+
+/**
  * 查询学生作业提交详情
  * @param {Number} homeworkId 作业ID
  * @returns {Promise}

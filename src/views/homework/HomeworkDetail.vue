@@ -48,12 +48,12 @@
         v-html="renderContent(homework.submitContent)"
       ></div>
 
-      <el-divider v-if="homework.comment" content-position="left">教师评语</el-divider>
-      <div v-if="homework.comment" class="comment">{{ homework.comment }}</div>
+      <el-divider v-if="homework.feedback" content-position="left">教师评语</el-divider>
+      <div v-if="homework.feedback" class="comment">{{ homework.feedback }}</div>
 
       <div class="actions">
-        <el-button v-if="homework.submitStatus === 0" type="primary" @click="handleSubmit">
-          提交作业
+        <el-button v-if="homework.submitStatus !== 2" type="primary" @click="handleSubmit">
+          {{ homework.submitStatus === 1 ? '修改提交' : '提交作业' }}
         </el-button>
         <el-button @click="handleBack">返回</el-button>
       </div>
@@ -66,7 +66,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getHomeworkById } from '@/api/homework'
-import { formatDate } from '@/utils/date'
 
 const router = useRouter()
 const route = useRoute()

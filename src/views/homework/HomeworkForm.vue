@@ -67,12 +67,14 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getHomeworkById, createHomework, updateHomework } from '@/api/homework'
-import { getMyEnrollments } from '@/api/course'
+import { getCoursesByTeacher, getMyEnrollments } from '@/api/course'
+import { useUserStore } from '@/stores/user'
 import { required } from '@/utils/validate'
 import UploadFile from '@/components/UploadFile.vue'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 
 const homeworkFormRef = ref(null)
 const submitLoading = ref(false)
@@ -104,7 +106,9 @@ onMounted(async () => {
 
 const loadCourses = async () => {
   try {
-    const res = await getMyEnrollments()
+    const res = userStore.isStudent
+      ? await getMyEnrollments()
+      : await getCoursesByTeacher(userStore.userId)
     courses.value = res.data
   } catch (error) {
     console.error('Load courses failed:', error)
@@ -129,11 +133,17 @@ const handleSubmit = async () => {
 
     const formData = {
       ...homeworkForm,
-      fileIds: homeworkForm.attachments.map((f) => f.id),
+      attachments: homeworkForm.attachments
+        .map((file) =>
+          typeof file === 'string'
+            ? file
+            : file.url || file.response?.data?.url || file.response?.url || file.name,
+        )
+        .filter(Boolean),
     }
 
     if (isEdit.value) {
-      await updateHomework(route.params.id, formData)
+      await updateHomework(formData)
       ElMessage.success('更新成功')
     } else {
       await createHomework(formData)

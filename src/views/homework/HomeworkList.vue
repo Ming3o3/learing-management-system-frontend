@@ -29,14 +29,25 @@
         <el-table-column prop="courseName" label="课程" width="180" />
         <el-table-column prop="title" label="作业标题" min-width="200" />
         <el-table-column prop="deadline" label="截止时间" width="180" />
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column v-if="!isStudent" label="提交情况" width="120">
           <template #default="{ row }">
-            <el-tag v-if="row.submitStatus === 0" type="warning">未提交</el-tag>
-            <el-tag v-else-if="row.submitStatus === 1" type="info">已提交</el-tag>
-            <el-tag v-else type="success">已批改</el-tag>
+            {{ row.submitCount || 0 }} 份
+            <el-tag v-if="row.pendingCount" type="warning" size="small">
+              待批 {{ row.pendingCount }}
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="score" label="成绩" width="100">
+        <el-table-column prop="status" label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag v-if="isStudent && row.submitStatus === 0" type="warning">未提交</el-tag>
+            <el-tag v-else-if="isStudent && row.submitStatus === 1" type="info">待批改</el-tag>
+            <el-tag v-else-if="isStudent && row.submitStatus === 2" type="success">已批改</el-tag>
+            <el-tag v-else-if="row.status === 0" type="info">草稿</el-tag>
+            <el-tag v-else-if="row.status === 2" type="warning">已截止</el-tag>
+            <el-tag v-else type="success">已发布</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="isStudent" prop="score" label="成绩" width="100">
           <template #default="{ row }">
             {{ row.score !== null ? row.score : '-' }}
           </template>
@@ -45,12 +56,23 @@
           <template #default="{ row }">
             <el-button type="primary" size="small" @click="handleView(row)">查看</el-button>
             <el-button
-              v-if="row.submitStatus === 0"
+              v-if="isStudent && row.submitStatus !== 2"
               type="success"
               size="small"
               @click="handleSubmit(row)"
             >
-              提交作业
+              {{ row.submitStatus === 1 ? '修改提交' : '提交作业' }}
+            </el-button>
+            <el-button v-if="!isStudent" type="success" size="small" @click="handleGrade(row)">
+              批改
+            </el-button>
+            <el-button
+              v-if="!isStudent && row.status === 0"
+              type="warning"
+              size="small"
+              @click="handlePublish(row)"
+            >
+              发布
             </el-button>
           </template>
         </el-table-column>
@@ -70,12 +92,15 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getHomeworkList } from '@/api/homework'
-import { getMyEnrollments } from '@/api/course'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getHomeworkList, publishHomework } from '@/api/homework'
+import { getCoursesByTeacher, getMyEnrollments } from '@/api/course'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 const loading = ref(false)
 const myCourses = ref([])
 
@@ -90,6 +115,7 @@ const pagination = reactive({
 })
 
 const tableData = ref([])
+const isStudent = computed(() => userStore.isStudent)
 
 onMounted(async () => {
   await loadMyCourses()
@@ -98,7 +124,9 @@ onMounted(async () => {
 
 const loadMyCourses = async () => {
   try {
-    const res = await getMyEnrollments()
+    const res = isStudent.value
+      ? await getMyEnrollments()
+      : await getCoursesByTeacher(userStore.userId)
     myCourses.value = res.data
   } catch (error) {
     console.error('Load courses failed:', error)
@@ -138,6 +166,23 @@ const handleView = (row) => {
 
 const handleSubmit = (row) => {
   router.push(`/homework/${row.id}/submit`)
+}
+
+const handleGrade = (row) => {
+  router.push(`/homework/${row.id}/submissions`)
+}
+
+const handlePublish = async (row) => {
+  try {
+    await ElMessageBox.confirm('发布后学生即可查看并提交，确认发布吗？', '发布作业', {
+      type: 'warning',
+    })
+    await publishHomework(row.id)
+    ElMessage.success('发布成功')
+    await loadHomeworkList()
+  } catch (error) {
+    if (error !== 'cancel') console.error('Publish homework failed:', error)
+  }
 }
 </script>
 

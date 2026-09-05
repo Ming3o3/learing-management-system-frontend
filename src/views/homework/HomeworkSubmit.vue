@@ -50,7 +50,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getHomeworkById, submitHomework } from '@/api/homework'
+import { getHomeworkById, getMySubmit, submitHomework } from '@/api/homework'
 import { required } from '@/utils/validate'
 import UploadFile from '@/components/UploadFile.vue'
 
@@ -83,6 +83,11 @@ const loadHomeworkDetail = async () => {
   try {
     const res = await getHomeworkById(route.params.id)
     homework.value = res.data
+    const submitRes = await getMySubmit(route.params.id)
+    if (submitRes.data) {
+      submitForm.content = submitRes.data.content || ''
+      submitForm.files = (submitRes.data.attachments || []).map((url) => ({ name: url, url }))
+    }
   } catch (error) {
     console.error('Load homework detail failed:', error)
     ElMessage.error('加载作业详情失败')
@@ -107,7 +112,13 @@ const handleSubmit = async () => {
     const formData = {
       homeworkId: route.params.id,
       content: submitForm.content,
-      fileIds: submitForm.files.map((f) => f.id),
+      attachments: submitForm.files
+        .map((file) =>
+          typeof file === 'string'
+            ? file
+            : file.url || file.response?.data?.url || file.response?.url || file.name,
+        )
+        .filter(Boolean),
     }
 
     await submitHomework(formData)

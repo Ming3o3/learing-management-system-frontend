@@ -110,6 +110,12 @@ const routes = [
         component: () => import('@/views/homework/HomeworkSubmit.vue'),
         meta: { title: '提交作业', roles: ['STUDENT'] },
       },
+      {
+        path: 'homework/:id/submissions',
+        name: 'HomeworkGrade',
+        component: () => import('@/views/homework/HomeworkGrade.vue'),
+        meta: { title: '批改作业', roles: ['ADMIN', 'TEACHER'] },
+      },
       // 考试管理
       // 试卷管理
       {
