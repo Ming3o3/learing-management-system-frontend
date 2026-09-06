@@ -50,10 +50,13 @@
 
             <div class="course-actions">
               <el-button type="primary" size="small" @click.stop="handleContinueLearn(course)">
-                继续学习
+                {{ course.status === 2 ? '查看课程' : '继续学习' }}
               </el-button>
-              <el-button size="small" @click.stop="handleViewHomework(course)">作业</el-button>
-              <el-button size="small" @click.stop="handleViewExam(course)">考试</el-button>
+              <template v-if="course.status === 1">
+                <el-button size="small" @click.stop="handleViewHomework(course)">作业</el-button>
+                <el-button size="small" @click.stop="handleViewExam(course)">考试</el-button>
+              </template>
+              <el-tag v-else type="info" size="small">历史课程仅可查看</el-tag>
             </div>
           </el-card>
         </el-col>
@@ -106,6 +109,10 @@ const handleViewCourse = (course) => {
 }
 
 const handleContinueLearn = (course) => {
+  if (course.status === 2) {
+    router.push(`/courses/${course.id}`)
+    return
+  }
   router.push(`/ai-assistant?courseId=${course.id}&courseName=${encodeURIComponent(course.courseName)}`)
 }
 

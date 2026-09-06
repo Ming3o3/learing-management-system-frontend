@@ -5,7 +5,7 @@
         <div class="card-header">
           <span>{{ course.courseName }}</span>
           <div class="header-actions">
-            <el-button v-if="isTeacher || isAdmin" type="primary" @click="handleEdit">
+            <el-button v-if="(isTeacher || isAdmin) && course.status !== 2" type="primary" @click="handleEdit">
               编辑课程
             </el-button>
             <el-button @click="handleBack">返回</el-button>
@@ -26,7 +26,7 @@
         <el-descriptions-item label="课程状态">
           <el-tag v-if="course.status === 0" type="info">草稿</el-tag>
           <el-tag v-else-if="course.status === 1" type="success">已发布</el-tag>
-          <el-tag v-else type="warning">已归档</el-tag>
+          <el-tag v-else type="warning">已结束</el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="创建时间">{{ course.createTime }}</el-descriptions-item>
       </el-descriptions>

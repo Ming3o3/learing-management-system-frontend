@@ -133,6 +133,7 @@ import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { VideoCamera, Document, Folder } from '@element-plus/icons-vue'
 import { getContentList, deleteContent, updateContent } from '@/api/content'
+import { getCourseById } from '@/api/course'
 import { getLearningRecords, recordLearning } from '@/api/learning'
 import { useUserStore } from '@/stores/user'
 import VideoUpload from '@/components/VideoUpload.vue'
@@ -145,6 +146,7 @@ const isTeacher = computed(() => userStore.isTeacher)
 const isAdmin = computed(() => userStore.isAdmin)
 
 const courseId = computed(() => parseInt(route.params.id))
+const courseStatus = ref(null)
 const loading = ref(false)
 const contentList = ref([])
 const uploadDialogVisible = ref(false)
@@ -165,7 +167,11 @@ const loadContentList = async () => {
   try {
     loading.value = true
     console.log('[CourseResources] 加载资源列表, courseId:', courseId.value)
-    const res = await getContentList(courseId.value)
+    const [res, courseRes] = await Promise.all([
+      getContentList(courseId.value),
+      getCourseById(courseId.value),
+    ])
+    courseStatus.value = courseRes.data?.status ?? null
     console.log('[CourseResources] API响应:', res)
     console.log('[CourseResources] 资源数量:', res.data?.length || 0)
 
@@ -354,7 +360,7 @@ const handleVideoTimeUpdate = (currentTime) => {
 }
 
 const recordContentProgress = (content, progress, completed, duration) => {
-  if (!content || isTeacher.value || isAdmin.value) return
+  if (!content || isTeacher.value || isAdmin.value || courseStatus.value === 2) return
   const now = Date.now()
   if (!completed && now - lastRecordAt.value < 8000) return
   lastRecordAt.value = now
