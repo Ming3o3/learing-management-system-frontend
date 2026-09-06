@@ -209,6 +209,19 @@ export function getStudentIdentity(params) {
 }
 
 /**
+ * 获取受保护的考生身份照片。
+ * 使用 Axios 携带 JWT，避免把认证信息放在图片 URL 查询参数中。
+ */
+export function getStudentIdentityPhoto(params) {
+  return request({
+    url: '/proctor/identity/photo',
+    method: 'get',
+    params,
+    responseType: 'blob',
+  })
+}
+
+/**
  * 删除考生身份照片
  * @param {Object} params - examId, studentId（后端从 query 读取）
  * @returns {Promise} 删除结果

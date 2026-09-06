@@ -323,7 +323,13 @@ export const useProctorStore = defineStore('proctor', () => {
       const response = await proctorApi.getStudentIdentity({ examId, studentId })
       if (response.data && response.data.hasIdentity) {
         isIdentityRegistered.value = true
-        identityPhotoUrl.value = response.data.photoUrl || ''
+        const photoResponse = await proctorApi.getStudentIdentityPhoto({ examId, studentId })
+        if (identityPhotoUrl.value) {
+          URL.revokeObjectURL(identityPhotoUrl.value)
+        }
+        identityPhotoUrl.value = URL.createObjectURL(photoResponse.data)
+      } else {
+        isIdentityRegistered.value = false
       }
     } catch (error) {
       console.error('获取身份信息失败:', error)
