@@ -70,7 +70,14 @@
             <el-button type="primary" size="small" @click="handleViewContent(content)">
               查看
             </el-button>
-            <el-button type="danger" size="small" @click="handleDelete(content)"> 删除 </el-button>
+            <el-button
+              v-if="content.status === 0"
+              type="danger"
+              size="small"
+              @click="handleDelete(content)"
+            >
+              删除
+            </el-button>
           </div>
         </div>
       </div>
