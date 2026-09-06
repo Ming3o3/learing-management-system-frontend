@@ -259,6 +259,23 @@ export function submitAnswers(data) {
   })
 }
 
+/** 保存考试草稿，不会提交试卷 */
+export function saveExamDraft(data) {
+  return request({
+    url: '/exam/record/draft',
+    method: 'post',
+    data,
+  })
+}
+
+/** 查询当前学生的考试草稿 */
+export function getExamDraft(recordId) {
+  return request({
+    url: `/exam/record/draft/${recordId}`,
+    method: 'get',
+  })
+}
+
 /**
  * 中断考试（可恢复）
  * @param {Number} recordId 考试记录ID

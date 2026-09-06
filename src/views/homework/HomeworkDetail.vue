@@ -28,13 +28,13 @@
       </el-descriptions>
 
       <el-divider content-position="left">作业要求</el-divider>
-      <div class="content" v-html="renderContent(homework.content)"></div>
+      <div class="content content-text">{{ homework.content }}</div>
 
       <el-divider v-if="homework.attachments?.length" content-position="left">附件</el-divider>
       <div v-if="homework.attachments?.length" class="attachments">
-        <div v-for="file in homework.attachments" :key="file.id" class="attachment-item">
+        <div v-for="file in homework.attachments" :key="getAttachmentUrl(file)" class="attachment-item">
           <el-icon><Document /></el-icon>
-          <span class="filename">{{ file.name }}</span>
+          <span class="filename">{{ getAttachmentName(file) }}</span>
           <el-button type="primary" size="small" text @click="handleDownload(file)">
             下载
           </el-button>
@@ -44,9 +44,8 @@
       <el-divider v-if="homework.submitContent" content-position="left">提交内容</el-divider>
       <div
         v-if="homework.submitContent"
-        class="content"
-        v-html="renderContent(homework.submitContent)"
-      ></div>
+        class="content content-text"
+      >{{ homework.submitContent }}</div>
 
       <el-divider v-if="homework.feedback" content-position="left">教师评语</el-divider>
       <div v-if="homework.feedback" class="comment">{{ homework.feedback }}</div>
@@ -95,13 +94,30 @@ const loadHomeworkDetail = async () => {
   }
 }
 
-const renderContent = (content) => {
-  return content?.replace(/\n/g, '<br>')
+const getAttachmentUrl = (file) => {
+  if (typeof file === 'string') return file
+  return file?.url || file?.path || file?.downloadUrl || ''
+}
+
+const getAttachmentName = (file) => {
+  if (typeof file !== 'string' && file?.name) return file.name
+  const url = getAttachmentUrl(file).split('?')[0]
+  const name = url.substring(url.lastIndexOf('/') + 1)
+  if (!name) return '课程附件'
+  try {
+    return decodeURIComponent(name)
+  } catch {
+    return name
+  }
 }
 
 const handleDownload = (file) => {
-  // TODO: 实现文件下载
-  ElMessage.info('下载功能待实现')
+  const url = getAttachmentUrl(file)
+  if (!url) {
+    ElMessage.warning('附件地址不可用')
+    return
+  }
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 const handleSubmit = () => {
@@ -148,6 +164,11 @@ const handleBack = () => {
   line-height: 1.8;
   color: #e9fbff;
   box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.08);
+}
+
+.content-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .attachments {

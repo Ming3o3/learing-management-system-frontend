@@ -49,6 +49,9 @@
               <el-tag size="small" :type="content.status === 1 ? 'success' : 'info'">
                 {{ content.statusDesc }}
               </el-tag>
+              <el-tag v-if="!isTeacher && !isAdmin && content.learningProgress" size="small" type="success">
+                {{ Number(content.learningProgress).toFixed(0) }}%
+              </el-tag>
             </div>
           </div>
 
@@ -104,6 +107,7 @@
         :src="currentContent.hlsPlaylistUrl"
         :video-info="currentContent"
         @ended="handleVideoEnded"
+        @time-update="handleVideoTimeUpdate"
       />
       <el-alert
         v-else-if="currentContent && currentContent.hlsStatus === 2"
@@ -122,6 +126,7 @@ import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { VideoCamera, Document, Folder } from '@element-plus/icons-vue'
 import { getContentList, deleteContent, updateContent } from '@/api/content'
+import { getLearningRecords, recordLearning } from '@/api/learning'
 import { useUserStore } from '@/stores/user'
 import VideoUpload from '@/components/VideoUpload.vue'
 import HlsVideoPlayer from '@/components/HlsVideoPlayer.vue'
@@ -140,6 +145,7 @@ const playDialogVisible = ref(false)
 const currentContent = ref(null)
 const uploadRef = ref(null)
 const playerRef = ref(null)
+const lastRecordAt = ref(0)
 
 onMounted(() => {
   loadContentList()
@@ -157,6 +163,20 @@ const loadContentList = async () => {
     console.log('[CourseResources] 资源数量:', res.data?.length || 0)
 
     let list = res.data || []
+
+    if (!isTeacher.value && !isAdmin.value) {
+      try {
+        const recordRes = await getLearningRecords(courseId.value)
+        const records = new Map((recordRes.data || []).map((record) => [record.contentId, record]))
+        list = list.map((item) => ({
+          ...item,
+          learningProgress: records.get(item.id)?.learnProgress || 0,
+          isCompleted: records.get(item.id)?.isCompleted === 1,
+        }))
+      } catch (error) {
+        console.error('加载学习记录失败:', error)
+      }
+    }
 
     // 学生只能看到已发布的内容
     if (!isTeacher.value && !isAdmin.value) {
@@ -197,6 +217,7 @@ const handleViewContent = (content) => {
   } else {
     // 其他类型
     if (content.contentUrl) {
+      recordContentProgress(content, 100, true)
       window.open(content.contentUrl, '_blank')
     } else {
       ElMessage.warning('资源链接不可用')
@@ -304,6 +325,7 @@ const handleUploadClose = () => {
  * 关闭播放对话框
  */
 const handlePlayClose = () => {
+  flushLearningRecord()
   playDialogVisible.value = false
   currentContent.value = null
   playerRef.value?.pause()
@@ -314,7 +336,33 @@ const handlePlayClose = () => {
  */
 const handleVideoEnded = () => {
   ElMessage.success('视频播放完成')
-  // TODO: 记录学习进度
+  recordContentProgress(currentContent.value, 100, true)
+}
+
+const handleVideoTimeUpdate = (currentTime) => {
+  if (!currentContent.value || !currentTime) return
+  const duration = Number(currentContent.value.duration || 0)
+  const progress = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
+  recordContentProgress(currentContent.value, progress, false, currentTime)
+}
+
+const recordContentProgress = (content, progress, completed, duration) => {
+  if (!content || isTeacher.value || isAdmin.value) return
+  const now = Date.now()
+  if (!completed && now - lastRecordAt.value < 8000) return
+  lastRecordAt.value = now
+  recordLearning({
+    contentId: content.id,
+    learnDuration: Math.max(0, Math.floor(duration || content.duration || 0)),
+    learnProgress: Math.min(100, Math.max(0, Number(progress || 0))),
+    isCompleted: completed ? 1 : 0,
+  }).catch((error) => console.error('记录学习进度失败:', error))
+}
+
+const flushLearningRecord = () => {
+  if (currentContent.value && !isTeacher.value && !isAdmin.value) {
+    recordContentProgress(currentContent.value, 0, false)
+  }
 }
 
 /**

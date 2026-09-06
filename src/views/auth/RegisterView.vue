@@ -221,21 +221,6 @@ const handleRegister = async () => {
     clip-path: inset(60% 0 10% 0);
     transform: translate(2px, -1px);
   }
-  animation: grid-move 20s linear infinite;
-}
-
-.particles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.particle {
-  position: absolute;
-  background: #00e5ff;
-  border-radius: 50%;
-  box-shadow: 0 0 8px #00e5ff;
-  animation: particle-float linear infinite;
   40% {
     clip-path: inset(40% 0 50% 0);
     transform: translate(-2px, 2px);
@@ -252,6 +237,20 @@ const handleRegister = async () => {
     clip-path: inset(50% 0 30% 0);
     transform: translate(1px, -1px);
   }
+}
+
+.particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  background: #00e5ff;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #00e5ff;
+  animation: particle-float linear infinite;
 }
 
 @keyframes glitch-anim-2 {

@@ -166,7 +166,7 @@ const handleEditSubmit = async () => {
     await editFormRef.value.validate()
     submitLoading.value = true
 
-    await updateUser(userInfo.value.id, editForm)
+    await updateUser({ id: userInfo.value.id, ...editForm })
     await userStore.getUserInfo()
 
     ElMessage.success('更新成功')

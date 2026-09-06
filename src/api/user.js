@@ -149,7 +149,7 @@ export function changePassword(data) {
   return request({
     url: '/user/change-password',
     method: 'put',
-    data
+    params: data
   })
 }
 
@@ -175,8 +175,8 @@ export function resetPassword(userId, newPassword) {
  */
 export function updateUserStatus(userId, status) {
   return request({
-    url: '/user/status',
+    url: `/user/status/${userId}`,
     method: 'put',
-    data: { userId, status }
+    params: { status }
   })
 }

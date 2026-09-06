@@ -34,8 +34,6 @@
       <el-divider content-position="left">课程简介</el-divider>
       <div class="description">{{ course.description }}</div>
 
-      <el-divider content-position="left">课程内容</el-divider>
-      <div class="content" v-html="renderContent"></div>
     </el-card>
 
     <!-- 课程资源 -->
@@ -136,11 +134,6 @@ const course = ref({})
 const resources = ref([])
 const students = ref([])
 
-const renderContent = computed(() => {
-  // TODO: 可以使用markdown-it或其他库渲染Markdown
-  return course.value.content?.replace(/\n/g, '<br>')
-})
-
 onMounted(() => {
   loadCourseDetail()
 })
@@ -151,9 +144,11 @@ const loadCourseDetail = async () => {
     const res = await getCourseById(route.params.id)
     course.value = res.data
 
-    // TODO: 加载课程资源和学生列表
-    loadResources()
-    loadStudents()
+    const tasks = [loadResources()]
+    if (isTeacher.value || isAdmin.value) {
+      tasks.push(loadStudents())
+    }
+    await Promise.all(tasks)
   } catch (error) {
     console.error('Load course detail failed:', error)
     ElMessage.error('加载课程详情失败')

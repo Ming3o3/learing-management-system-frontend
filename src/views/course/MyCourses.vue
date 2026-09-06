@@ -67,6 +67,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getMyEnrollments } from '@/api/course'
+import { getCourseProgress } from '@/api/learning'
 
 const router = useRouter()
 const courses = ref([])
@@ -80,7 +81,18 @@ const loadMyCourses = async () => {
   try {
     loading.value = true
     const res = await getMyEnrollments()
-    courses.value = res.data || []
+    const enrolledCourses = res.data || []
+    courses.value = await Promise.all(
+      enrolledCourses.map(async (course) => {
+        try {
+          const progressRes = await getCourseProgress(course.id)
+          return { ...course, progress: progressRes.data?.progress || 0 }
+        } catch (error) {
+          console.error(`Load progress failed for course ${course.id}:`, error)
+          return { ...course, progress: 0 }
+        }
+      }),
+    )
   } catch (error) {
     console.error('Load my courses failed:', error)
     ElMessage.error('加载课程列表失败')
@@ -102,7 +114,7 @@ const handleViewHomework = (course) => {
 }
 
 const handleViewExam = (course) => {
-  router.push(`/exams?courseId=${course.id}`)
+  router.push(`/exam/papers?courseId=${course.id}`)
 }
 </script>
 

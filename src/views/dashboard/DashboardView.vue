@@ -89,7 +89,12 @@
           </template>
           <el-empty v-if="!todos.length" description="暂无待办事项" />
           <div v-else class="todo-list">
-            <div v-for="todo in todos" :key="todo.id" class="todo-item">
+            <div
+              v-for="todo in todos"
+              :key="todo.id"
+              class="todo-item"
+              @click="todo.path && $router.push(todo.path)"
+            >
               <el-tag :type="todo.type" size="small">{{ todo.label }}</el-tag>
               <span class="todo-title">{{ todo.title }}</span>
               <span class="todo-time">{{ todo.deadline }}</span>
@@ -103,6 +108,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { getAllCourses, getCoursesByTeacher, getMyEnrollments } from '@/api/course'
+import { getHomeworkList } from '@/api/homework'
+import { getPaperPage } from '@/api/exam'
+import { getLearningStats } from '@/api/learning'
+import { useUserStore } from '@/stores/user'
 
 const stats = ref({
   courses: 0,
@@ -113,6 +123,7 @@ const stats = ref({
 
 const recentCourses = ref([])
 const todos = ref([])
+const userStore = useUserStore()
 
 onMounted(() => {
   // TODO: 从API获取数据
@@ -120,45 +131,63 @@ onMounted(() => {
 })
 
 const loadDashboardData = async () => {
-  // 模拟数据
-  stats.value = {
-    courses: 6,
-    homework: 3,
-    exams: 2,
-    progress: 68,
+  try {
+    const isStudent = userStore.isStudent
+    const coursePromise = isStudent
+      ? getMyEnrollments()
+      : userStore.isAdmin
+        ? getAllCourses()
+        : getCoursesByTeacher(userStore.userId)
+    const requests = [
+      coursePromise,
+      getHomeworkList({ pageNum: 1, pageSize: 100 }),
+      getPaperPage({
+        status: isStudent ? 1 : undefined,
+        teacherId: !isStudent && !userStore.isAdmin ? userStore.userId : undefined,
+        pageNum: 1,
+        pageSize: 100,
+      }),
+    ]
+    if (isStudent) requests.push(getLearningStats())
+    const [courseRes, homeworkRes, examRes, learningRes] = await Promise.all(requests)
+    const courses = courseRes.data || []
+    const homework = homeworkRes.data?.list || []
+    const exams = examRes.data?.list || []
+    const pendingHomework = isStudent
+      ? homework.filter((item) => item.submitStatus === 0)
+      : homework.filter((item) => (item.pendingCount || 0) > 0)
+
+    stats.value = {
+      courses: courses.length,
+      homework: pendingHomework.length,
+      exams: exams.length,
+      progress: isStudent ? Number(learningRes?.data?.averageProgress || 0) : 0,
+    }
+    recentCourses.value = courses.slice(0, 4)
+    todos.value = [
+      ...pendingHomework.slice(0, 5).map((item) => ({
+        id: `homework-${item.id}`,
+        type: 'warning',
+        label: '作业',
+        title: item.title,
+        deadline: item.deadline || '未设置截止时间',
+        path: `/homework/${item.id}`,
+      })),
+      ...exams.slice(0, 5).map((item) => ({
+        id: `exam-${item.id}`,
+        type: 'danger',
+        label: '考试',
+        title: item.paperName,
+        deadline: item.startTime || '待安排',
+        path: `/exam/take/${item.id}`,
+      })),
+    ]
+  } catch (error) {
+    console.error('Load dashboard data failed:', error)
+    stats.value = { courses: 0, homework: 0, exams: 0, progress: 0 }
+    recentCourses.value = []
+    todos.value = []
   }
-
-  recentCourses.value = [
-    {
-      id: 1,
-      courseName: 'Web前端开发',
-      teacherName: '张老师',
-      progress: 75,
-    },
-    {
-      id: 2,
-      courseName: 'Java程序设计',
-      teacherName: '李老师',
-      progress: 60,
-    },
-  ]
-
-  todos.value = [
-    {
-      id: 1,
-      type: 'warning',
-      label: '作业',
-      title: '第三章作业',
-      deadline: '2天后截止',
-    },
-    {
-      id: 2,
-      type: 'danger',
-      label: '考试',
-      title: '期中考试',
-      deadline: '明天 14:00',
-    },
-  ]
 }
 </script>
 

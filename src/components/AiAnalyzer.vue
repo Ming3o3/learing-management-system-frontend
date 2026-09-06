@@ -90,6 +90,21 @@ import {
 import { analyzeQuestionStream } from '@/api/ai'
 import { marked } from 'marked'
 
+const safeMarkdownRenderer = new marked.Renderer()
+safeMarkdownRenderer.html = () => ''
+safeMarkdownRenderer.image = () => ''
+safeMarkdownRenderer.link = (href, title, text) => {
+  const safeHref = /^(https?:\/\/|mailto:|#)/i.test(href || '') ? href : '#'
+  const titleAttr = title ? ` title="${escapeAttribute(title)}"` : ''
+  return `<a href="${escapeAttribute(safeHref)}"${titleAttr} target="_blank" rel="noopener noreferrer">${text}</a>`
+}
+
+const escapeAttribute = (value) => String(value || '')
+  .replace(/&/g, '&amp;')
+  .replace(/"/g, '&quot;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+
 // Props
 const props = defineProps({
   question: {
@@ -108,7 +123,7 @@ let cancelFn = null
 // 渲染Markdown内容
 const renderedContent = computed(() => {
   if (!content.value) return ''
-  return marked(content.value, { breaks: true })
+  return marked(content.value, { breaks: true, renderer: safeMarkdownRenderer })
 })
 
 // 切换面板

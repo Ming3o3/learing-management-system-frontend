@@ -212,6 +212,8 @@ import {
   getQuestionByPaper,
   startExam,
   submitAnswers,
+  saveExamDraft,
+  getExamDraft,
   interruptExam,
   getMyRecord,
   resumeExam,
@@ -240,6 +242,7 @@ const proctorCameraRef = ref(null)
 const debugCameraVisible = ref(false)
 const resumeRecord = ref(null)
 let timer = null
+let draftTimer = null
 let beforeUnloadHandler = null
 
 const currentQuestion = computed(() => questions.value[currentQuestionIndex.value])
@@ -293,6 +296,7 @@ const resumeByRecordId = async (recordIdQuery) => {
     if (res.code === 200) {
       recordId.value = res.data.id
       examStatus.value = 'doing'
+      await loadDraft(recordId.value)
 
       if (res.data?.startTime) {
         const start = new Date(res.data.startTime.replace(/-/g, '/')).getTime()
@@ -303,6 +307,7 @@ const resumeByRecordId = async (recordIdQuery) => {
       }
 
       startTimer()
+      startDraftTimer()
       ElMessage.success('已恢复考试')
     }
   } catch (error) {
@@ -315,6 +320,9 @@ const resumeByRecordId = async (recordIdQuery) => {
 onUnmounted(() => {
   if (timer) {
     clearInterval(timer)
+  }
+  if (draftTimer) {
+    clearInterval(draftTimer)
   }
 
   if (beforeUnloadHandler) {
@@ -352,6 +360,9 @@ const loadQuestions = async (paperId) => {
     const res = await getQuestionByPaper(paperId)
     if (res.code === 200) {
       questions.value = res.data || []
+      questions.value.filter((question) => question.questionType === 2).forEach((question) => {
+        multipleAnswers[question.id] = []
+      })
     }
   } catch (error) {
     ElMessage.error('加载试题失败')
@@ -385,6 +396,7 @@ const handleIdentityVerified = async () => {
     if (res.code === 200) {
       recordId.value = res.data.id
       examStatus.value = 'doing'
+      await loadDraft(recordId.value)
       // 若为恢复进入，按开始时间计算剩余时长
       if (res.data?.startTime) {
         const start = new Date(res.data.startTime.replace(/-/g, '/')).getTime()
@@ -396,6 +408,7 @@ const handleIdentityVerified = async () => {
 
       // 启动倒计时
       startTimer()
+      startDraftTimer()
 
       ElMessage.success('身份验证成功，考试已开始！')
     }
@@ -420,6 +433,7 @@ const handleResumeExam = async () => {
     if (res.code === 200) {
       recordId.value = res.data.id
       examStatus.value = 'doing'
+      await loadDraft(recordId.value)
 
       if (res.data?.startTime) {
         const start = new Date(res.data.startTime.replace(/-/g, '/')).getTime()
@@ -430,6 +444,7 @@ const handleResumeExam = async () => {
       }
 
       startTimer()
+      startDraftTimer()
       ElMessage.success('已恢复考试')
     }
   } catch (error) {
@@ -463,6 +478,57 @@ const startTimer = () => {
   }, 1000)
 }
 
+/** 定时保存草稿，避免刷新或网络短暂中断造成答题丢失。 */
+const startDraftTimer = () => {
+  if (draftTimer) clearInterval(draftTimer)
+  draftTimer = setInterval(() => {
+    if (examStatus.value === 'doing' && recordId.value) {
+      saveDraft()
+    }
+  }, 10000)
+}
+
+const buildAnswerList = (includeEmpty = false) => {
+  return questions.value
+    .map((question) => ({
+      questionId: question.id,
+      studentAnswer: answers[question.id] || '',
+    }))
+    .filter((item) => includeEmpty || item.studentAnswer)
+}
+
+const saveDraft = async () => {
+  try {
+    await saveExamDraft({
+      recordId: recordId.value,
+      answers: buildAnswerList(true),
+    })
+  } catch (error) {
+    // 草稿保存失败不打断答题，下一次定时任务会重试。
+    console.warn('[StudentExam] 草稿保存失败', error)
+  }
+}
+
+const loadDraft = async (currentRecordId) => {
+  try {
+    const res = await getExamDraft(currentRecordId)
+    if (res.code === 200 && Array.isArray(res.data)) {
+      res.data.forEach((draft) => {
+        if (draft.questionId == null) return
+        answers[draft.questionId] = draft.studentAnswer || ''
+        const question = questions.value.find((item) => item.id === draft.questionId)
+        if (question?.questionType === 2) {
+          multipleAnswers[draft.questionId] = draft.studentAnswer
+            ? draft.studentAnswer.split(',').filter(Boolean)
+            : []
+        }
+      })
+    }
+  } catch (error) {
+    console.warn('[StudentExam] 草稿加载失败', error)
+  }
+}
+
 /**
  * 格式化时间
  */
@@ -477,7 +543,7 @@ const formatTime = (seconds) => {
  * 多选题改变
  */
 const handleMultipleChange = (questionId) => {
-  answers[questionId] = multipleAnswers[questionId].sort().join(',')
+  answers[questionId] = (multipleAnswers[questionId] || []).slice().sort().join(',')
 }
 
 /**
@@ -500,12 +566,7 @@ const handleSubmitExam = async () => {
 
   try {
     // 组装答案数据
-    const answerList = Object.keys(answers)
-      .filter((questionId) => answers[questionId])
-      .map((questionId) => ({
-        questionId: parseInt(questionId),
-        studentAnswer: answers[questionId],
-      }))
+    const answerList = buildAnswerList(true)
 
     const res = await submitAnswers({
       recordId: recordId.value,
@@ -516,6 +577,9 @@ const handleSubmitExam = async () => {
       examStatus.value = 'submitted'
       if (timer) {
         clearInterval(timer)
+      }
+      if (draftTimer) {
+        clearInterval(draftTimer)
       }
       ElMessage.success('提交成功!')
     }
@@ -573,12 +637,7 @@ const handleAutoSubmit = async (proctorData) => {
     })
 
     // 组装答案数据（包含监考信息）
-    const answerList = Object.keys(answers)
-      .filter((questionId) => answers[questionId])
-      .map((questionId) => ({
-        questionId: parseInt(questionId),
-        studentAnswer: answers[questionId],
-      }))
+    const answerList = buildAnswerList(true)
 
     const submitData = {
       recordId: recordId.value,
@@ -592,6 +651,9 @@ const handleAutoSubmit = async (proctorData) => {
       examStatus.value = 'submitted'
       if (timer) {
         clearInterval(timer)
+      }
+      if (draftTimer) {
+        clearInterval(draftTimer)
       }
       ElMessage.success('试卷已自动提交')
     }

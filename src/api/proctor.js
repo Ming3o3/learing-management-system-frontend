@@ -144,7 +144,7 @@ export function endProctorSession(data) {
  */
 export function heartbeat(data) {
   return request({
-    url: '/proctor/heartbeat',
+    url: '/proctor/session/heartbeat',
     method: 'post',
     data,
   })

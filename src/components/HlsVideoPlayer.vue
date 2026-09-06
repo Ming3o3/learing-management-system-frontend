@@ -61,6 +61,7 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Loading, Warning } from '@element-plus/icons-vue'
 import Hls from 'hls.js'
+import { getToken } from '@/utils/storage'
 
 const props = defineProps({
   src: {
@@ -124,6 +125,13 @@ const initPlayer = () => {
       enableWorker: true,
       lowLatencyMode: false,
       backBufferLength: 90,
+      // m3u8 和 ts 分片都走受保护的课程文件代理接口。
+      xhrSetup: (xhr) => {
+        const token = getToken()
+        if (token) {
+          xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+        }
+      },
     })
 
     hls.loadSource(props.src)

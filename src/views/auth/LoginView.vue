@@ -204,7 +204,14 @@ const handleLogin = async () => {
     clip-path: inset(80% 0 5% 0);
     transform: translate(2px, -2px);
   }
-  animation: grid-move 20s linear infinite;
+  80% {
+    clip-path: inset(10% 0 60% 0);
+    transform: translate(-1px, 1px);
+  }
+  100% {
+    clip-path: inset(50% 0 30% 0);
+    transform: translate(1px, -1px);
+  }
 }
 
 .particles {
@@ -219,14 +226,6 @@ const handleLogin = async () => {
   border-radius: 50%;
   box-shadow: 0 0 8px #00e5ff;
   animation: particle-float linear infinite;
-  80% {
-    clip-path: inset(10% 0 60% 0);
-    transform: translate(-1px, 1px);
-  }
-  100% {
-    clip-path: inset(50% 0 30% 0);
-    transform: translate(1px, -1px);
-  }
 }
 
 @keyframes glitch-anim-2 {

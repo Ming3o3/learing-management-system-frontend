@@ -161,7 +161,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getUserPage, register, updateUser, deleteUser, resetPassword } from '@/api/user'
+import { getUserPage, register, updateUser, deleteUser, resetPassword, batchDeleteUsers } from '@/api/user'
 import { required, usernameRule, passwordRule, phoneRule, emailRule } from '@/utils/validate'
 
 const loading = ref(false)
@@ -297,8 +297,9 @@ const handleBatchDelete = async () => {
       type: 'warning',
     })
 
-    // TODO: 批量删除API
+    await batchDeleteUsers(selectedIds.value)
     ElMessage.success('批量删除成功')
+    selectedIds.value = []
     loadUserList()
   } catch (error) {
     if (error !== 'cancel') {
