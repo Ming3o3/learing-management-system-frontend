@@ -7,7 +7,7 @@
           <h3>课程资源</h3>
         </div>
         <div class="toolbar-right">
-          <el-button v-if="isTeacher || isAdmin" type="primary" @click="handleAddVideo">
+          <el-button v-if="(isTeacher || isAdmin) && courseStatus !== 2" type="primary" @click="handleAddVideo">
             <el-icon><VideoCamera /></el-icon>
             上传视频
           </el-button>
@@ -55,7 +55,7 @@
             </div>
           </div>
 
-          <div v-if="isTeacher || isAdmin" class="content-actions" @click.stop>
+          <div v-if="(isTeacher || isAdmin) && courseStatus !== 2" class="content-actions" @click.stop>
             <el-button
               v-if="content.status === 0"
               type="success"
