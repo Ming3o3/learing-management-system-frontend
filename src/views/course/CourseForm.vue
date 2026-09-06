@@ -9,7 +9,7 @@
 
       <el-form ref="courseFormRef" :model="courseForm" :rules="formRules" label-width="120px">
         <el-form-item label="课程名称" prop="courseName">
-          <el-input v-model="courseForm.courseName" placeholder="请输入课程名称" />
+          <el-input v-model="courseForm.courseName" placeholder="请输入课程名称" :disabled="isPublished" />
         </el-form-item>
 
         <el-form-item label="课程简介" prop="description">
@@ -26,7 +26,7 @@
             v-model="courseForm.teacherId"
             placeholder="请选择授课教师"
             filterable
-            :disabled="isTeacher"
+            :disabled="isTeacher || isPublished"
           >
             <el-option
               v-for="teacher in teachers"
@@ -41,7 +41,7 @@
         </el-form-item>
 
         <el-form-item label="学分" prop="credit">
-          <el-input-number v-model="courseForm.credit" :min="0" :max="10" :precision="1" />
+          <el-input-number v-model="courseForm.credit" :min="0" :max="10" :precision="1" :disabled="isPublished" />
         </el-form-item>
 
         <el-form-item label="开课时间" prop="startDate">
@@ -51,6 +51,7 @@
             placeholder="选择开课时间"
             format="YYYY-MM-DD"
             value-format="YYYY-MM-DD"
+            :disabled="isPublished"
           />
         </el-form-item>
 
@@ -61,6 +62,7 @@
             placeholder="选择结课时间"
             format="YYYY-MM-DD"
             value-format="YYYY-MM-DD"
+            :disabled="isPublished"
           />
         </el-form-item>
 
@@ -74,7 +76,7 @@
         </el-form-item>
 
         <el-form-item label="课程状态" prop="status">
-          <el-radio-group v-model="courseForm.status">
+          <el-radio-group v-model="courseForm.status" :disabled="isEdit">
             <el-radio :label="0">草稿</el-radio>
             <el-radio :label="1">发布</el-radio>
             <el-radio :label="2">归档</el-radio>
@@ -111,6 +113,7 @@ const teachers = ref([])
 
 const isEdit = computed(() => !!route.params.id)
 const isTeacher = computed(() => userStore.isTeacher)
+const isPublished = computed(() => isEdit.value && courseForm.status === 1)
 
 const courseForm = reactive({
   courseName: '',

@@ -102,7 +102,7 @@
         </el-table-column>
         <el-table-column label="操作" width="120">
           <template #default="{ row }">
-            <el-button type="danger" size="small" @click="handleRemoveStudent(row)">
+            <el-button v-if="course.status !== 2 && row.status === 1" type="danger" size="small" @click="handleRemoveStudent(row)">
               移除
             </el-button>
           </template>
