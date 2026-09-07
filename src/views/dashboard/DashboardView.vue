@@ -126,7 +126,6 @@ const todos = ref([])
 const userStore = useUserStore()
 
 onMounted(() => {
-  // TODO: 从API获取数据
   loadDashboardData()
 })
 
@@ -179,7 +178,7 @@ const loadDashboardData = async () => {
         label: '考试',
         title: item.paperName,
         deadline: item.startTime || '待安排',
-        path: `/exam/take/${item.id}`,
+        path: isStudent ? `/exam/take/${item.id}` : `/exam/paper/detail/${item.id}`,
       })),
     ]
   } catch (error) {
