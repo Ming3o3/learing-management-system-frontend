@@ -120,7 +120,6 @@ import { VideoCamera, Document, Folder } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { getCourseById, getCourseStudents, removeStudentFromCourse } from '@/api/course'
 import { getContentList } from '@/api/content'
-import { formatFileSize } from '@/utils'
 
 const router = useRouter()
 const route = useRoute()
@@ -203,27 +202,6 @@ const handleViewResource = (content) => {
 
 const handleUploadResource = () => {
   handleGoToResources()
-}
-
-const handleDownload = (row) => {
-  ElMessage.info('下载功能待实现')
-}
-
-const handleDeleteResource = async (row) => {
-  try {
-    await ElMessageBox.confirm(`确定删除资源"${row.fileName}"吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    })
-
-    ElMessage.success('删除成功')
-    loadResources()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('Delete resource failed:', error)
-    }
-  }
 }
 
 const handleRemoveStudent = async (row) => {

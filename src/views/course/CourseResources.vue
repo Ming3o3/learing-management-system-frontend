@@ -55,6 +55,12 @@
             </div>
           </div>
 
+          <div v-if="!(isTeacher || isAdmin)" class="content-actions" @click.stop>
+            <el-button type="primary" size="small" @click="handleDownload(content)">
+              下载
+            </el-button>
+          </div>
+
           <div v-if="(isTeacher || isAdmin) && courseStatus !== 2" class="content-actions" @click.stop>
             <el-button
               v-if="content.status === 0"
@@ -132,7 +138,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { VideoCamera, Document, Folder } from '@element-plus/icons-vue'
-import { getContentList, deleteContent, updateContent } from '@/api/content'
+import {
+  getContentList,
+  deleteContent,
+  updateContent,
+  getContentDownloadUrl,
+} from '@/api/content'
 import { getCourseById } from '@/api/course'
 import { getLearningRecords, recordLearning } from '@/api/learning'
 import { useUserStore } from '@/stores/user'
@@ -228,13 +239,27 @@ const handleViewContent = (content) => {
       ElMessage.warning('视频尚未转换，无法播放')
     }
   } else {
-    // 其他类型
-    if (content.contentUrl) {
-      recordContentProgress(content, 100, true)
-      window.open(content.contentUrl, '_blank')
-    } else {
+    // 其他类型统一通过后端校验权限后下载
+    handleDownload(content)
+  }
+}
+
+/**
+ * 下载课程资源。后端先校验课程权限，再返回短期下载地址。
+ */
+const handleDownload = async (content) => {
+  try {
+    const res = await getContentDownloadUrl(content.id)
+    const url = res.data
+    if (!url) {
       ElMessage.warning('资源链接不可用')
+      return
     }
+    window.open(url, '_blank', 'noopener,noreferrer')
+    recordContentProgress(content, 100, true)
+  } catch (error) {
+    console.error('下载课程资源失败:', error)
+    ElMessage.error('下载失败，请稍后重试')
   }
 }
 

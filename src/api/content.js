@@ -121,3 +121,15 @@ export function getHlsPlayUrl(contentId) {
     method: 'get',
   })
 }
+
+/**
+ * 获取课程资源下载地址（由后端完成课程权限校验）
+ * @param {Number} contentId 内容ID
+ * @returns {Promise}
+ */
+export function getContentDownloadUrl(contentId) {
+  return request({
+    url: `/course/content/download-url/${contentId}`,
+    method: 'get',
+  })
+}
