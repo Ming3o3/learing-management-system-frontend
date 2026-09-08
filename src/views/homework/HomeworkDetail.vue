@@ -41,6 +41,17 @@
         </div>
       </div>
 
+      <el-divider v-if="homework.submitAttachments?.length" content-position="left">我的提交附件</el-divider>
+      <div v-if="homework.submitAttachments?.length" class="attachments">
+        <div v-for="file in homework.submitAttachments" :key="getAttachmentUrl(file)" class="attachment-item">
+          <el-icon><Document /></el-icon>
+          <span class="filename">{{ getAttachmentName(file) }}</span>
+          <el-button type="primary" size="small" text @click="handleDownload(file)">
+            下载
+          </el-button>
+        </div>
+      </div>
+
       <el-divider v-if="homework.submitContent" content-position="left">提交内容</el-divider>
       <div
         v-if="homework.submitContent"
@@ -65,6 +76,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getHomeworkById } from '@/api/homework'
+import request from '@/utils/request'
 
 const router = useRouter()
 const route = useRoute()
@@ -111,13 +123,32 @@ const getAttachmentName = (file) => {
   }
 }
 
-const handleDownload = (file) => {
+const handleDownload = async (file) => {
   const url = getAttachmentUrl(file)
   if (!url) {
     ElMessage.warning('附件地址不可用')
     return
   }
-  window.open(url, '_blank', 'noopener,noreferrer')
+  try {
+    if (url.startsWith('/api/file/')) {
+      const response = await request({
+        url: url.substring('/api'.length),
+        method: 'get',
+        responseType: 'blob',
+      })
+      const objectUrl = URL.createObjectURL(response.data)
+      const anchor = document.createElement('a')
+      anchor.href = objectUrl
+      anchor.download = getAttachmentName(file)
+      anchor.click()
+      URL.revokeObjectURL(objectUrl)
+      return
+    }
+    window.open(url, '_blank', 'noopener,noreferrer')
+  } catch (error) {
+    console.error('Download attachment failed:', error)
+    ElMessage.error('附件下载失败')
+  }
 }
 
 const handleSubmit = () => {

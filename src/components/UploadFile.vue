@@ -47,7 +47,7 @@ const props = defineProps({
   // 上传地址
   action: {
     type: String,
-    default: '/api/upload',
+    default: '/upload',
   },
   // 附加数据
   data: {

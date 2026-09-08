@@ -51,7 +51,6 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getHomeworkById, getMySubmit, submitHomework } from '@/api/homework'
-import { required } from '@/utils/validate'
 import UploadFile from '@/components/UploadFile.vue'
 
 const router = useRouter()
@@ -67,7 +66,18 @@ const submitForm = reactive({
 })
 
 const formRules = {
-  content: [required],
+  content: [
+    {
+      validator: (_rule, value, callback) => {
+        if (value?.trim() || submitForm.files.length > 0) {
+          callback()
+        } else {
+          callback(new Error('作业内容或附件至少填写一项'))
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
 }
 
 const isOverdue = computed(() => {
