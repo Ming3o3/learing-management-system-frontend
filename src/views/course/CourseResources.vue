@@ -7,6 +7,10 @@
           <h3>课程资源</h3>
         </div>
         <div class="toolbar-right">
+          <el-button v-if="(isTeacher || isAdmin) && courseStatus !== 2" type="primary" plain @click="handleAddContent">
+            <el-icon><DocumentAdd /></el-icon>
+            新增资料
+          </el-button>
           <el-button v-if="(isTeacher || isAdmin) && courseStatus !== 2" type="primary" @click="handleAddVideo">
             <el-icon><VideoCamera /></el-icon>
             上传视频
@@ -56,8 +60,8 @@
           </div>
 
           <div v-if="!(isTeacher || isAdmin)" class="content-actions" @click.stop>
-            <el-button type="primary" size="small" @click="handleDownload(content)">
-              下载
+            <el-button type="primary" size="small" @click="handleViewContent(content)">
+              {{ content.contentType === 4 && content.contentText ? '查看' : '下载' }}
             </el-button>
           </div>
 
@@ -106,6 +110,72 @@
       />
     </el-dialog>
 
+    <!-- 新增资料对话框 -->
+    <el-dialog
+      v-model="contentDialogVisible"
+      title="新增资料"
+      width="620px"
+      :close-on-click-modal="false"
+      @close="resetContentForm"
+    >
+      <el-form
+        ref="contentFormRef"
+        :model="contentForm"
+        :rules="contentRules"
+        label-width="92px"
+      >
+        <el-form-item label="资料标题" prop="title">
+          <el-input
+            v-model="contentForm.title"
+            maxlength="200"
+            show-word-limit
+            placeholder="请输入资料标题"
+          />
+        </el-form-item>
+        <el-form-item label="资料类型" prop="contentType">
+          <el-select v-model="contentForm.contentType" style="width: 100%">
+            <el-option label="文档" :value="2" />
+            <el-option label="PPT" :value="3" />
+            <el-option label="其他" :value="4" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="资源链接" prop="contentUrl">
+          <el-input
+            v-model="contentForm.contentUrl"
+            placeholder="可填写公开的 HTTP(S) 资源链接"
+            maxlength="1000"
+            clearable
+          />
+          <div class="form-tip">文档和 PPT 发布时必须填写 HTTP(S) 链接；其他资料可只填写文本。</div>
+        </el-form-item>
+        <el-form-item v-if="contentForm.contentType === 4" label="文本内容" prop="contentText">
+          <el-input
+            v-model="contentForm.contentText"
+            type="textarea"
+            :rows="7"
+            maxlength="10000"
+            show-word-limit
+            placeholder="可填写学习提示、补充说明等文本内容"
+          />
+        </el-form-item>
+        <el-form-item label="排序号" prop="sortOrder">
+          <el-input-number v-model="contentForm.sortOrder" :min="0" :max="9999" />
+        </el-form-item>
+        <el-form-item label="发布状态" prop="status">
+          <el-radio-group v-model="contentForm.status">
+            <el-radio :label="0">保存为草稿</el-radio>
+            <el-radio :label="1">立即发布</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="contentDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submittingContent" @click="handleContentSubmit">
+          保存
+        </el-button>
+      </template>
+    </el-dialog>
+
     <!-- 视频播放对话框 -->
     <el-dialog
       v-model="playDialogVisible"
@@ -130,16 +200,32 @@
       />
       <el-alert v-else title="视频暂不可用" type="error" :closable="false" />
     </el-dialog>
+
+    <!-- 文本资料查看对话框 -->
+    <el-dialog
+      v-model="textDialogVisible"
+      :title="currentContent?.title || '资料内容'"
+      width="680px"
+    >
+      <div class="text-content">{{ currentContent?.contentText || '暂无文本内容' }}</div>
+      <template #footer>
+        <el-button v-if="currentContent?.contentUrl" type="primary" @click="handleDownload(currentContent)">
+          打开资源链接
+        </el-button>
+        <el-button @click="textDialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { VideoCamera, Document, Folder } from '@element-plus/icons-vue'
+import { VideoCamera, Document, DocumentAdd, Folder } from '@element-plus/icons-vue'
 import {
   getContentList,
+  createContent,
   deleteContent,
   updateContent,
   getContentDownloadUrl,
@@ -162,10 +248,32 @@ const loading = ref(false)
 const contentList = ref([])
 const uploadDialogVisible = ref(false)
 const playDialogVisible = ref(false)
+const contentDialogVisible = ref(false)
+const textDialogVisible = ref(false)
 const currentContent = ref(null)
 const uploadRef = ref(null)
 const playerRef = ref(null)
+const contentFormRef = ref(null)
+const submittingContent = ref(false)
 const lastRecordAt = ref(0)
+
+const contentForm = reactive({
+  title: '',
+  contentType: 2,
+  contentUrl: '',
+  contentText: '',
+  sortOrder: 0,
+  status: 0,
+})
+
+const contentRules = {
+  title: [
+    { required: true, message: '请输入资料标题', trigger: 'blur' },
+    { max: 200, message: '资料标题不能超过200个字符', trigger: 'blur' },
+  ],
+  contentType: [{ required: true, message: '请选择资料类型', trigger: 'change' }],
+  sortOrder: [{ type: 'number', message: '排序号必须是数字', trigger: 'change' }],
+}
 
 onMounted(() => {
   loadContentList()
@@ -225,6 +333,77 @@ const handleAddVideo = () => {
 }
 
 /**
+ * 新增非视频资料
+ */
+const handleAddContent = () => {
+  resetContentForm()
+  contentDialogVisible.value = true
+}
+
+const resetContentForm = () => {
+  Object.assign(contentForm, {
+    title: '',
+    contentType: 2,
+    contentUrl: '',
+    contentText: '',
+    sortOrder: 0,
+    status: 0,
+  })
+  contentFormRef.value?.clearValidate()
+}
+
+const isHttpUrl = (value) => {
+  try {
+    const url = new URL(value.trim())
+    return Boolean(url.hostname) && ['http:', 'https:'].includes(url.protocol)
+  } catch {
+    return false
+  }
+}
+
+const handleContentSubmit = async () => {
+  try {
+    const valid = await contentFormRef.value.validate().catch(() => false)
+    if (!valid) return
+    const url = contentForm.contentUrl.trim()
+    const text = contentForm.contentText.trim()
+    if (url && !isHttpUrl(url)) {
+      ElMessage.warning('资源链接必须使用有效的 HTTP(S) 地址')
+      return
+    }
+    if (contentForm.status === 1 && [2, 3].includes(contentForm.contentType) && !url) {
+      ElMessage.warning('文档或 PPT 发布时必须填写资源链接')
+      return
+    }
+    if (contentForm.status === 1 && contentForm.contentType === 4 && !url && !text) {
+      ElMessage.warning('其他类型资料至少填写资源链接或文本内容')
+      return
+    }
+
+    submittingContent.value = true
+    await createContent({
+      courseId: courseId.value,
+      title: contentForm.title.trim(),
+      contentType: contentForm.contentType,
+      contentUrl: url || null,
+      contentText: text || null,
+      sortOrder: contentForm.sortOrder,
+      status: contentForm.status,
+    })
+    ElMessage.success(contentForm.status === 1 ? '资料已发布' : '资料已保存为草稿')
+    contentDialogVisible.value = false
+    loadContentList()
+  } catch (error) {
+    if (error !== false) {
+      console.error('新增资料失败:', error)
+      ElMessage.error(error?.message || '新增资料失败')
+    }
+  } finally {
+    submittingContent.value = false
+  }
+}
+
+/**
  * 查看内容
  */
 const handleViewContent = (content) => {
@@ -238,8 +417,11 @@ const handleViewContent = (content) => {
     } else {
       ElMessage.warning('视频尚未转换，无法播放')
     }
+  } else if (content.contentType === 4 && content.contentText) {
+    currentContent.value = content
+    textDialogVisible.value = true
   } else {
-    // 其他类型统一通过后端校验权限后下载
+    // 文件资料统一通过后端校验权限后下载
     handleDownload(content)
   }
 }
@@ -495,6 +677,27 @@ const hlsStatusType = (status) => {
 .content-actions {
   display: flex;
   gap: 8px;
+}
+
+.form-tip {
+  margin-top: 4px;
+  color: #8aa9c7;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.text-content {
+  min-height: 160px;
+  max-height: 480px;
+  overflow: auto;
+  padding: 16px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.8;
+  color: #e7f6ff;
+  background: rgba(10, 24, 52, 0.55);
+  border: 1px solid rgba(72, 156, 255, 0.25);
+  border-radius: 8px;
 }
 
 :deep(.el-dialog__header) {
