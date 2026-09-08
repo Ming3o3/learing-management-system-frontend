@@ -109,6 +109,11 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="详情" width="90" align="center">
+          <template #default="{ row }">
+            <el-button type="primary" link size="small" @click="handleView(row)">查看</el-button>
+          </template>
+        </el-table-column>
         <el-table-column label="区块链" width="160" align="center" v-if="isTeacher || isAdmin">
           <template #default="{ row }">
             <template v-if="row.onChain">
@@ -374,12 +379,12 @@ const handleReset = () => {
  * 查看详情
  */
 const handleView = (row) => {
-  if (row.type === 'EXAM' && row.examId) {
-    router.push(`/exams/records/${row.id}`)
-  } else if (row.type === 'HOMEWORK' && row.homeworkId) {
-    router.push(`/homework/submissions/${row.id}`)
+  if (row.scoreType === 2 && row.examId) {
+    router.push({ name: 'PaperDetail', params: { id: row.examId } })
+  } else if (row.scoreType === 1 && row.homeworkId) {
+    router.push({ name: 'HomeworkGrade', params: { id: row.homeworkId } })
   } else {
-    ElMessage.warning('详情页面暂未开发')
+    ElMessage.warning('该成绩暂无可查看的业务详情')
   }
 }
 
