@@ -155,6 +155,17 @@ import { ElMessage } from 'element-plus'
 import { VideoPlay, Download, InfoFilled } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { runCode, codeScore, codeOptimize } from '@/api/programming'
+import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
+import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
+
+function configureMonacoWorkers() {
+  globalThis.MonacoEnvironment = {
+    ...(globalThis.MonacoEnvironment || {}),
+    getWorker(_moduleId, label) {
+      return label === 'json' ? new JsonWorker() : new EditorWorker()
+    },
+  }
+}
 
 const RADAR_INDICATORS = [
   { name: '功能正确性', max: 10 },
@@ -460,6 +471,7 @@ function updateEditorHeight() {
 onMounted(async () => {
   window.addEventListener('resize', onScoreChartResize)
   try {
+    configureMonacoWorkers()
     monacoInstance = await import('monaco-editor')
     editor = monacoInstance.editor.create(editorContainer.value, {
       value: DEFAULT_CODE[language.value],
