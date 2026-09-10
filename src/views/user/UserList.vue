@@ -54,7 +54,7 @@
         <el-table-column prop="realName" label="真实姓名" width="120" />
         <el-table-column prop="gender" label="性别" width="80">
           <template #default="{ row }">
-            <el-tag :type="row.gender === 1 ? '' : 'success'">
+            <el-tag :type="row.gender === 1 ? 'info' : 'success'">
               {{ row.gender === 1 ? '男' : '女' }}
             </el-tag>
           </template>

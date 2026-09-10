@@ -4,8 +4,7 @@
     <el-card class="search-card neon-card">
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="课程">
-          <el-select v-model="searchForm.courseId" placeholder="请选择课程" clearable filterable>
-            <el-option label="全部课程" :value="null" />
+          <el-select v-model="searchForm.courseId" placeholder="全部课程" clearable filterable>
             <el-option
               v-for="course in courses"
               :key="course.id"
