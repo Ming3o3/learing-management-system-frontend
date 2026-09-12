@@ -68,6 +68,32 @@ export function getCourseScoreStats(courseId, scoreType) {
 }
 
 /**
+ * 查询课程综合成绩权重
+ * @param {Number} courseId 课程ID
+ * @returns {Promise}
+ */
+export function getComprehensiveScoreConfig(courseId) {
+  return request({
+    url: `/score/course/${courseId}/comprehensive`,
+    method: 'get',
+  })
+}
+
+/**
+ * 保存权重并重新计算课程综合成绩
+ * @param {Number} courseId 课程ID
+ * @param {Object} data 作业与考试权重
+ * @returns {Promise}
+ */
+export function recalculateComprehensiveScores(courseId, data) {
+  return request({
+    url: `/score/course/${courseId}/comprehensive`,
+    method: 'put',
+    data,
+  })
+}
+
+/**
  * 导出成绩
  * @param {Object} params 查询条件
  * @returns {Promise}

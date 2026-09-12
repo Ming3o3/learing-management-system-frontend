@@ -9,10 +9,10 @@
 
       <el-table v-loading="loading" :data="tableData" border>
         <el-table-column prop="courseName" label="课程" width="180" />
-        <el-table-column prop="examTitle" label="考试/作业" min-width="200" />
+        <el-table-column prop="examTitle" label="考核项目" min-width="200" />
         <el-table-column prop="scoreTypeName" label="类型" width="100">
           <template #default="{ row }">
-            <el-tag :type="row.scoreType === 2 ? 'danger' : 'primary'">{{ row.scoreTypeName || '未知' }}</el-tag>
+            <el-tag :type="scoreTypeTag(row.scoreType)">{{ row.scoreTypeName || '未知' }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="score" label="成绩" width="100">
@@ -21,22 +21,37 @@
           </template>
         </el-table-column>
         <el-table-column prop="fullScore" label="总分" width="100" />
-        <el-table-column prop="createTime" label="提交时间" width="180" />
+        <el-table-column prop="createTime" label="记录时间" width="180" />
         <el-table-column label="操作" width="190">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="handleView(row)">查看详情</el-button>
-            <el-button type="primary" link size="small" @click="handleHistory(row)">变更记录</el-button>
+            <el-button type="primary" link size="small" @click="handleView(row)"
+              >查看详情</el-button
+            >
+            <el-button
+              v-if="row.scoreType !== 3"
+              type="primary"
+              link
+              size="small"
+              @click="handleHistory(row)"
+            >
+              变更记录
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
-
     </el-card>
 
     <el-dialog v-model="detailVisible" title="成绩详情" width="560px">
       <el-descriptions v-if="selectedScore.id" :column="1" border>
-        <el-descriptions-item label="课程">{{ selectedScore.courseName || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="考试/作业">{{ selectedScore.examTitle || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="类型">{{ selectedScore.scoreTypeName || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="课程">{{
+          selectedScore.courseName || '-'
+        }}</el-descriptions-item>
+        <el-descriptions-item label="考核项目">{{
+          selectedScore.examTitle || '-'
+        }}</el-descriptions-item>
+        <el-descriptions-item label="类型">{{
+          selectedScore.scoreTypeName || '-'
+        }}</el-descriptions-item>
         <el-descriptions-item label="成绩">
           {{ selectedScore.score ?? '-' }} / {{ selectedScore.fullScore ?? '-' }}
         </el-descriptions-item>
@@ -45,7 +60,12 @@
             {{ selectedScore.passed ? '及格' : '不及格' }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="时间">{{ selectedScore.createTime || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="时间">{{
+          selectedScore.createTime || '-'
+        }}</el-descriptions-item>
+        <el-descriptions-item v-if="selectedScore.remark" label="计算说明">
+          {{ selectedScore.remark }}
+        </el-descriptions-item>
       </el-descriptions>
       <el-empty v-else description="暂无成绩详情" />
     </el-dialog>
@@ -113,6 +133,12 @@ const openBusinessDetail = (score) => {
 
 const handleHistory = (row) => {
   historyDialogRef.value?.open(row)
+}
+
+const scoreTypeTag = (scoreType) => {
+  if (scoreType === 2) return 'danger'
+  if (scoreType === 3) return 'success'
+  return 'primary'
 }
 </script>
 

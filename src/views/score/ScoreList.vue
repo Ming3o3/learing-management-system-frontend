@@ -25,6 +25,7 @@
           >
             <el-option label="考试" :value="2" />
             <el-option label="作业" :value="1" />
+            <el-option label="综合" :value="3" />
           </el-select>
         </el-form-item>
         <el-form-item label="不及格" v-if="isTeacher || isAdmin">
@@ -58,7 +59,18 @@
           <el-icon><DataAnalysis /></el-icon>
           成绩统计
         </el-button>
-        <span class="chain-tip">考试成绩可在表格右侧「区块链」列点击「上链」写入链上存证；验真请用左侧菜单「成绩验真」。</span>
+        <el-button
+          type="primary"
+          plain
+          :disabled="!searchForm.courseId"
+          @click="handleComprehensive"
+        >
+          <el-icon><SetUp /></el-icon>
+          综合成绩
+        </el-button>
+        <span class="chain-tip"
+          >考试成绩可在表格右侧「区块链」列点击「上链」写入链上存证；验真请用左侧菜单「成绩验真」。</span
+        >
       </div>
     </el-card>
 
@@ -67,10 +79,10 @@
       <el-table v-loading="loading" :data="tableData" border stripe class="neon-table">
         <el-table-column prop="studentName" label="学生姓名" width="120" />
         <el-table-column prop="courseName" label="课程" width="180" show-overflow-tooltip />
-        <el-table-column prop="examTitle" label="考试/作业" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="examTitle" label="考核项目" min-width="200" show-overflow-tooltip />
         <el-table-column prop="scoreTypeName" label="类型" width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.scoreType === 2 ? 'danger' : 'primary'" effect="dark">
+            <el-tag :type="scoreTypeTag(row.scoreType)" effect="dark">
               {{ row.scoreTypeName || '未知' }}
             </el-tag>
           </template>
@@ -96,7 +108,7 @@
             />
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="提交时间" width="180">
+        <el-table-column prop="createTime" label="记录时间" width="180">
           <template #default="{ row }">
             {{ formatDateTime(row.createTime) }}
           </template>
@@ -110,12 +122,30 @@
         </el-table-column>
         <el-table-column label="详情" width="90" align="center">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="handleView(row)">查看</el-button>
+            <el-button
+              v-if="row.scoreType !== 3"
+              type="primary"
+              link
+              size="small"
+              @click="handleView(row)"
+            >
+              查看
+            </el-button>
+            <span v-else class="no-chain">-</span>
           </template>
         </el-table-column>
         <el-table-column label="记录" width="90" align="center">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="handleHistory(row)">记录</el-button>
+            <el-button
+              v-if="row.scoreType !== 3"
+              type="primary"
+              link
+              size="small"
+              @click="handleHistory(row)"
+            >
+              记录
+            </el-button>
+            <span v-else class="no-chain">-</span>
           </template>
         </el-table-column>
         <el-table-column label="区块链" width="160" align="center" v-if="isTeacher || isAdmin">
@@ -263,6 +293,57 @@
       </div>
     </el-dialog>
 
+    <el-dialog
+      v-model="comprehensiveVisible"
+      title="综合成绩"
+      width="min(520px, calc(100vw - 32px))"
+      :close-on-click-modal="false"
+      destroy-on-close
+    >
+      <div v-loading="configLoading" class="weight-editor">
+        <div class="weight-course">{{ selectedCourseName }}</div>
+        <el-form label-width="110px">
+          <el-form-item label="作业权重">
+            <el-input-number
+              v-model="comprehensiveForm.homeworkWeight"
+              :min="0"
+              :max="100"
+              :step="5"
+              :precision="2"
+              controls-position="right"
+            />
+            <span class="weight-unit">%</span>
+          </el-form-item>
+          <el-form-item label="考试权重">
+            <el-input-number
+              v-model="comprehensiveForm.examWeight"
+              :min="0"
+              :max="100"
+              :step="5"
+              :precision="2"
+              controls-position="right"
+            />
+            <span class="weight-unit">%</span>
+          </el-form-item>
+        </el-form>
+        <div class="weight-total" :class="{ invalid: !weightsValid }">
+          <span>权重合计</span>
+          <strong>{{ weightTotal.toFixed(2) }}%</strong>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="comprehensiveVisible = false">取消</el-button>
+        <el-button
+          type="primary"
+          :disabled="!weightsValid || configLoading"
+          :loading="calculateLoading"
+          @click="saveComprehensive"
+        >
+          保存并计算
+        </el-button>
+      </template>
+    </el-dialog>
+
     <ScoreHistoryDialog ref="historyDialogRef" />
   </div>
 </template>
@@ -280,8 +361,17 @@ import {
   Top,
   Bottom,
   Checked,
+  SetUp,
 } from '@element-plus/icons-vue'
-import { getScoreList, exportScores, getCourseScoreStats, syncAllExamScores, publishScoreToChain } from '@/api/score'
+import {
+  getScoreList,
+  exportScores,
+  getCourseScoreStats,
+  getComprehensiveScoreConfig,
+  recalculateComprehensiveScores,
+  syncAllExamScores,
+  publishScoreToChain,
+} from '@/api/score'
 import { getAllCourses } from '@/api/course'
 import { useUserStore } from '@/stores/user'
 import ScoreHistoryDialog from '@/components/ScoreHistoryDialog.vue'
@@ -293,6 +383,9 @@ const statisticsVisible = ref(false)
 const courses = ref([])
 const publishLoading = ref(null)
 const historyDialogRef = ref(null)
+const comprehensiveVisible = ref(false)
+const configLoading = ref(false)
+const calculateLoading = ref(false)
 
 const isTeacher = computed(() => userStore.isTeacher)
 const isAdmin = computed(() => userStore.isAdmin)
@@ -311,6 +404,21 @@ const pagination = reactive({
 })
 
 const tableData = ref([])
+
+const comprehensiveForm = reactive({
+  homeworkWeight: 40,
+  examWeight: 60,
+})
+
+const selectedCourseName = computed(() => {
+  return (
+    courses.value.find((course) => course.id === searchForm.courseId)?.courseName || '未选择课程'
+  )
+})
+const weightTotal = computed(() => {
+  return Number(comprehensiveForm.homeworkWeight || 0) + Number(comprehensiveForm.examWeight || 0)
+})
+const weightsValid = computed(() => Math.abs(weightTotal.value - 100) < 0.001)
 
 const statistics = reactive({
   average: 0,
@@ -409,6 +517,54 @@ const handleHistory = (row) => {
   historyDialogRef.value?.open(row)
 }
 
+const handleComprehensive = async () => {
+  if (!searchForm.courseId) {
+    ElMessage.warning('请先选择课程')
+    return
+  }
+  comprehensiveVisible.value = true
+  configLoading.value = true
+  try {
+    const res = await getComprehensiveScoreConfig(searchForm.courseId)
+    comprehensiveForm.homeworkWeight = Number(res.data?.homeworkWeight ?? 40)
+    comprehensiveForm.examWeight = Number(res.data?.examWeight ?? 60)
+  } catch (error) {
+    console.error('Load comprehensive score config failed:', error)
+    ElMessage.error('加载综合成绩配置失败')
+    comprehensiveVisible.value = false
+  } finally {
+    configLoading.value = false
+  }
+}
+
+const saveComprehensive = async () => {
+  if (!weightsValid.value) {
+    ElMessage.warning('作业权重与考试权重之和必须为100%')
+    return
+  }
+  calculateLoading.value = true
+  try {
+    const res = await recalculateComprehensiveScores(searchForm.courseId, comprehensiveForm)
+    const result = res.data || {}
+    const skipped = Number(result.skippedCount || 0)
+    const message = `已生成或更新 ${result.generatedCount || 0}/${result.totalStudents || 0} 名学生的综合成绩`
+    if (skipped > 0) {
+      ElMessage.warning(`${message}，${skipped} 人缺少必需成绩`)
+    } else {
+      ElMessage.success(message)
+    }
+    comprehensiveVisible.value = false
+    searchForm.scoreType = 3
+    pagination.pageNum = 1
+    await loadScoreList()
+  } catch (error) {
+    console.error('Recalculate comprehensive scores failed:', error)
+    ElMessage.error(error.response?.data?.message || '综合成绩计算失败')
+  } finally {
+    calculateLoading.value = false
+  }
+}
+
 /**
  * 同步所有考试成绩
  */
@@ -460,7 +616,9 @@ const handlePublishToChain = async (row) => {
     publishLoading.value = row.id
     const res = await publishScoreToChain(row.id)
     const txHash = res.data?.data ?? res.data
-    ElMessage.success('上链成功：' + (typeof txHash === 'string' ? txHash.slice(0, 18) + '...' : '已写入'))
+    ElMessage.success(
+      '上链成功：' + (typeof txHash === 'string' ? txHash.slice(0, 18) + '...' : '已写入'),
+    )
     await loadScoreList()
   } catch (error) {
     console.error('Publish to chain failed:', error)
@@ -496,6 +654,12 @@ const getScoreClass = (score) => {
   if (score >= 90) return 'excellent-score'
   if (score >= 60) return 'good-score'
   return 'fail-score'
+}
+
+const scoreTypeTag = (scoreType) => {
+  if (scoreType === 2) return 'danger'
+  if (scoreType === 3) return 'success'
+  return 'primary'
 }
 
 /**
@@ -580,6 +744,40 @@ const formatDateTime = (dateTime) => {
   color: rgba(0, 229, 255, 0.85);
   font-size: 12px;
   margin-left: 8px;
+}
+
+.weight-editor {
+  min-height: 180px;
+}
+
+.weight-course {
+  margin-bottom: 20px;
+  color: #e9fbff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.weight-unit {
+  margin-left: 8px;
+  color: #a0cfff;
+}
+
+.weight-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(0, 229, 255, 0.25);
+  color: #a0cfff;
+
+  strong {
+    color: #7dffcf;
+    font-size: 18px;
+  }
+
+  &.invalid strong {
+    color: #ff8f8f;
+  }
 }
 
 /* 表格样式 */

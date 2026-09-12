@@ -68,7 +68,9 @@ const selectedScore = ref({})
 const scoreTitle = computed(() => selectedScore.value.examTitle || '')
 const scoreTypeName = computed(() => {
   if (selectedScore.value.scoreTypeName) return selectedScore.value.scoreTypeName
-  return selectedScore.value.scoreType === 2 ? '考试' : '作业'
+  if (selectedScore.value.scoreType === 2) return '考试'
+  if (selectedScore.value.scoreType === 3) return '综合'
+  return '作业'
 })
 
 const open = (score) => {
