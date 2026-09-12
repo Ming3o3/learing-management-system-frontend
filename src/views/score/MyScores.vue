@@ -22,7 +22,7 @@
         </el-table-column>
         <el-table-column prop="fullScore" label="总分" width="100" />
         <el-table-column prop="createTime" label="记录时间" width="180" />
-        <el-table-column label="操作" width="190">
+        <el-table-column label="操作" width="270">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="handleView(row)"
               >查看详情</el-button
@@ -35,6 +35,15 @@
               @click="handleHistory(row)"
             >
               变更记录
+            </el-button>
+            <el-button
+              v-if="row.scoreType === 1 || row.scoreType === 2"
+              type="warning"
+              link
+              size="small"
+              @click="openAppeal(row)"
+            >
+              申请复核
             </el-button>
           </template>
         </el-table-column>
@@ -70,6 +79,43 @@
       <el-empty v-else description="暂无成绩详情" />
     </el-dialog>
 
+    <el-dialog
+      v-model="appealVisible"
+      title="申请成绩复核"
+      width="min(560px, calc(100vw - 32px))"
+      :close-on-click-modal="false"
+    >
+      <el-descriptions v-if="appealScore.id" :column="1" border class="appeal-summary">
+        <el-descriptions-item label="课程">{{
+          appealScore.courseName || '-'
+        }}</el-descriptions-item>
+        <el-descriptions-item label="考核项目">
+          {{ appealScore.scoreTypeName || '-' }} · {{ appealScore.examTitle || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="当前成绩">
+          {{ appealScore.score ?? '-' }} / {{ appealScore.fullScore ?? '-' }}
+        </el-descriptions-item>
+      </el-descriptions>
+      <el-form label-position="top">
+        <el-form-item label="申诉理由" required>
+          <el-input
+            v-model="appealReason"
+            type="textarea"
+            :rows="5"
+            maxlength="1000"
+            show-word-limit
+            placeholder="请说明需要核对的题目、评分或其他情况"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="appealVisible = false">取消</el-button>
+        <el-button type="primary" :loading="appealLoading" @click="submitAppeal">
+          提交申诉
+        </el-button>
+      </template>
+    </el-dialog>
+
     <ScoreHistoryDialog ref="historyDialogRef" />
   </div>
 </template>
@@ -77,7 +123,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getMyScores, getScoreById } from '@/api/score'
+import { ElMessage } from 'element-plus'
+import { createScoreAppeal, getMyScores, getScoreById } from '@/api/score'
 import ScoreHistoryDialog from '@/components/ScoreHistoryDialog.vue'
 
 const router = useRouter()
@@ -87,6 +134,10 @@ const tableData = ref([])
 const detailVisible = ref(false)
 const selectedScore = ref({})
 const historyDialogRef = ref(null)
+const appealVisible = ref(false)
+const appealLoading = ref(false)
+const appealScore = ref({})
+const appealReason = ref('')
 
 onMounted(() => {
   loadScoreList()
@@ -135,6 +186,30 @@ const handleHistory = (row) => {
   historyDialogRef.value?.open(row)
 }
 
+const openAppeal = (row) => {
+  appealScore.value = { ...row }
+  appealReason.value = ''
+  appealVisible.value = true
+}
+
+const submitAppeal = async () => {
+  const reason = appealReason.value.trim()
+  if (!reason) {
+    ElMessage.warning('请填写申诉理由')
+    return
+  }
+  appealLoading.value = true
+  try {
+    await createScoreAppeal({ scoreId: appealScore.value.id, reason })
+    ElMessage.success('成绩申诉已提交')
+    appealVisible.value = false
+  } catch (error) {
+    console.error('Create score appeal failed:', error)
+  } finally {
+    appealLoading.value = false
+  }
+}
+
 const scoreTypeTag = (scoreType) => {
   if (scoreType === 2) return 'danger'
   if (scoreType === 3) return 'success'
@@ -155,6 +230,10 @@ const scoreTypeTag = (scoreType) => {
 .low-score {
   color: #f56c6c;
   font-weight: 600;
+}
+
+.appeal-summary {
+  margin-bottom: 20px;
 }
 
 .pagination {

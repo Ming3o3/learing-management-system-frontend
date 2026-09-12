@@ -72,6 +72,7 @@
           </template>
           <el-menu-item v-if="userStore.isStudent" index="/my-scores">我的成绩</el-menu-item>
           <el-menu-item v-if="!userStore.isStudent" index="/scores">成绩管理</el-menu-item>
+          <el-menu-item index="/score/appeals">成绩申诉</el-menu-item>
           <el-menu-item index="/score/verify">成绩验真</el-menu-item>
         </el-sub-menu>
 
@@ -95,6 +96,8 @@ import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 import { Monitor, Cpu } from '@element-plus/icons-vue'
+
+defineOptions({ name: 'AppSidebar' })
 
 const route = useRoute()
 const appStore = useAppStore()

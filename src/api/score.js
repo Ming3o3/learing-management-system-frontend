@@ -94,6 +94,58 @@ export function recalculateComprehensiveScores(courseId, data) {
 }
 
 /**
+ * 按当前角色查询成绩申诉
+ * @param {Object} params 查询条件
+ * @returns {Promise}
+ */
+export function getScoreAppeals(params) {
+  return request({
+    url: '/score/appeals',
+    method: 'get',
+    params,
+  })
+}
+
+/**
+ * 学生发起成绩申诉
+ * @param {Object} data 成绩ID与申诉理由
+ * @returns {Promise}
+ */
+export function createScoreAppeal(data) {
+  return request({
+    url: '/score/appeals',
+    method: 'post',
+    data,
+  })
+}
+
+/**
+ * 学生撤回待处理申诉
+ * @param {Number} id 申诉ID
+ * @returns {Promise}
+ */
+export function cancelScoreAppeal(id) {
+  return request({
+    url: `/score/appeals/${id}/cancel`,
+    method: 'put',
+  })
+}
+
+/**
+ * 教师或管理员复核成绩申诉
+ * @param {Number} id 申诉ID
+ * @param {Object} data 复核结果与说明
+ * @returns {Promise}
+ */
+export function reviewScoreAppeal(id, data) {
+  return request({
+    url: `/score/appeals/${id}/review`,
+    method: 'put',
+    data,
+  })
+}
+
+/**
  * 导出成绩
  * @param {Object} params 查询条件
  * @returns {Promise}

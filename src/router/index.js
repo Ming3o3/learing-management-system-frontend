@@ -207,6 +207,12 @@ const routes = [
         meta: { title: '成绩验真' },
       },
       {
+        path: 'score/appeals',
+        name: 'ScoreAppeals',
+        component: () => import('@/views/score/ScoreAppeals.vue'),
+        meta: { title: '成绩申诉', roles: ['ADMIN', 'TEACHER', 'STUDENT'] },
+      },
+      {
         path: 'programming',
         name: 'ProgrammingPractice',
         component: () => import('@/views/programming/ProgrammingPractice.vue'),
