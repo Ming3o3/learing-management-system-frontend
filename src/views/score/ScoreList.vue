@@ -117,7 +117,10 @@
           <template #default="{ row }">
             <template v-if="row.onChain">
               <el-tag type="success" effect="dark" size="small">已上链</el-tag>
-              <div class="tx-hash" :title="row.blockchainTxHash">{{ (row.blockchainTxHash || '').slice(0, 10) }}...</div>
+              <div v-if="row.blockchainTxHash" class="tx-hash" :title="row.blockchainTxHash">
+                {{ row.blockchainTxHash.slice(0, 10) }}...
+              </div>
+              <div v-else class="tx-hash">哈希未记录</div>
             </template>
             <template v-else>
               <el-button
