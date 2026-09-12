@@ -378,10 +378,16 @@ const handleReset = () => {
  * 查看详情
  */
 const handleView = (row) => {
-  if (row.scoreType === 2 && row.examId) {
+  if (row.scoreType === 2 && row.relatedId) {
+    router.push({ name: 'ExamCorrect', params: { id: row.relatedId } })
+  } else if (row.scoreType === 2 && row.examId) {
     router.push({ name: 'PaperDetail', params: { id: row.examId } })
   } else if (row.scoreType === 1 && row.homeworkId) {
-    router.push({ name: 'HomeworkGrade', params: { id: row.homeworkId } })
+    router.push({
+      name: 'HomeworkGrade',
+      params: { id: row.homeworkId },
+      query: row.relatedId ? { submissionId: row.relatedId } : undefined,
+    })
   } else {
     ElMessage.warning('该成绩暂无可查看的业务详情')
   }

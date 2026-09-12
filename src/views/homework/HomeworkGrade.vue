@@ -82,6 +82,7 @@ const homework = ref({})
 const submissions = ref([])
 const dialogVisible = ref(false)
 const activeSubmission = ref(null)
+const targetSubmissionHandled = ref(false)
 const gradeForm = reactive({ score: null, feedback: '' })
 
 onMounted(loadData)
@@ -95,10 +96,24 @@ async function loadData() {
     ])
     homework.value = homeworkRes.data || {}
     submissions.value = submissionRes.data || []
+    openTargetSubmission()
   } catch (error) {
     console.error('Load homework submissions failed:', error)
   } finally {
     loading.value = false
+  }
+}
+
+function openTargetSubmission() {
+  if (targetSubmissionHandled.value || !route.query.submissionId) return
+  targetSubmissionHandled.value = true
+  const target = submissions.value.find(
+    (submission) => String(submission.id) === String(route.query.submissionId),
+  )
+  if (target) {
+    openGrade(target)
+  } else {
+    ElMessage.warning('未找到对应的作业提交记录')
   }
 }
 
