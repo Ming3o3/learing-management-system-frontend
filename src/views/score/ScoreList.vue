@@ -235,7 +235,7 @@
           </el-col>
           <el-col :span="8">
             <div class="detail-item">
-              <span class="detail-label">总人数:</span>
+              <span class="detail-label">成绩记录数:</span>
               <span class="detail-value">{{ statistics.totalCount || 0 }}</span>
             </div>
           </el-col>
