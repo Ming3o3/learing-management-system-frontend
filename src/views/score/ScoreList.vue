@@ -175,8 +175,8 @@
                 <el-icon><TrendCharts /></el-icon>
               </div>
               <div class="stat-info">
-                <div class="stat-label">平均分</div>
-                <div class="stat-value">{{ statistics.average?.toFixed(2) || '0.00' }}</div>
+                <div class="stat-label">平均得分率</div>
+                <div class="stat-value">{{ statistics.average?.toFixed(2) || '0.00' }}%</div>
               </div>
             </div>
           </el-col>
@@ -186,8 +186,8 @@
                 <el-icon><Top /></el-icon>
               </div>
               <div class="stat-info">
-                <div class="stat-label">最高分</div>
-                <div class="stat-value">{{ statistics.max?.toFixed(1) || '0.0' }}</div>
+                <div class="stat-label">最高得分率</div>
+                <div class="stat-value">{{ statistics.max?.toFixed(1) || '0.0' }}%</div>
               </div>
             </div>
           </el-col>
@@ -197,8 +197,8 @@
                 <el-icon><Bottom /></el-icon>
               </div>
               <div class="stat-info">
-                <div class="stat-label">最低分</div>
-                <div class="stat-value">{{ statistics.min?.toFixed(1) || '0.0' }}</div>
+                <div class="stat-label">最低得分率</div>
+                <div class="stat-value">{{ statistics.min?.toFixed(1) || '0.0' }}%</div>
               </div>
             </div>
           </el-col>
@@ -221,8 +221,8 @@
         <el-row :gutter="20" class="stats-detail">
           <el-col :span="8">
             <div class="detail-item">
-              <span class="detail-label">中位数:</span>
-              <span class="detail-value">{{ statistics.median?.toFixed(2) || '0.00' }}</span>
+              <span class="detail-label">中位得分率:</span>
+              <span class="detail-value">{{ statistics.median?.toFixed(2) || '0.00' }}%</span>
             </div>
           </el-col>
           <el-col :span="8">
