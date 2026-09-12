@@ -113,6 +113,11 @@
             <el-button type="primary" link size="small" @click="handleView(row)">查看</el-button>
           </template>
         </el-table-column>
+        <el-table-column label="记录" width="90" align="center">
+          <template #default="{ row }">
+            <el-button type="primary" link size="small" @click="handleHistory(row)">记录</el-button>
+          </template>
+        </el-table-column>
         <el-table-column label="区块链" width="160" align="center" v-if="isTeacher || isAdmin">
           <template #default="{ row }">
             <template v-if="row.onChain">
@@ -257,6 +262,8 @@
         </div>
       </div>
     </el-dialog>
+
+    <ScoreHistoryDialog ref="historyDialogRef" />
   </div>
 </template>
 
@@ -277,6 +284,7 @@ import {
 import { getScoreList, exportScores, getCourseScoreStats, syncAllExamScores, publishScoreToChain } from '@/api/score'
 import { getAllCourses } from '@/api/course'
 import { useUserStore } from '@/stores/user'
+import ScoreHistoryDialog from '@/components/ScoreHistoryDialog.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -284,6 +292,7 @@ const loading = ref(false)
 const statisticsVisible = ref(false)
 const courses = ref([])
 const publishLoading = ref(null)
+const historyDialogRef = ref(null)
 
 const isTeacher = computed(() => userStore.isTeacher)
 const isAdmin = computed(() => userStore.isAdmin)
@@ -394,6 +403,10 @@ const handleView = (row) => {
   } else {
     ElMessage.warning('该成绩暂无可查看的业务详情')
   }
+}
+
+const handleHistory = (row) => {
+  historyDialogRef.value?.open(row)
 }
 
 /**

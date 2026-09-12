@@ -22,9 +22,10 @@
         </el-table-column>
         <el-table-column prop="fullScore" label="总分" width="100" />
         <el-table-column prop="createTime" label="提交时间" width="180" />
-        <el-table-column label="操作" width="120">
+        <el-table-column label="操作" width="190">
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click="handleView(row)">查看详情</el-button>
+            <el-button type="primary" link size="small" @click="handleView(row)">查看详情</el-button>
+            <el-button type="primary" link size="small" @click="handleHistory(row)">变更记录</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -48,6 +49,8 @@
       </el-descriptions>
       <el-empty v-else description="暂无成绩详情" />
     </el-dialog>
+
+    <ScoreHistoryDialog ref="historyDialogRef" />
   </div>
 </template>
 
@@ -55,6 +58,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getMyScores, getScoreById } from '@/api/score'
+import ScoreHistoryDialog from '@/components/ScoreHistoryDialog.vue'
 
 const router = useRouter()
 const loading = ref(false)
@@ -62,6 +66,7 @@ const loading = ref(false)
 const tableData = ref([])
 const detailVisible = ref(false)
 const selectedScore = ref({})
+const historyDialogRef = ref(null)
 
 onMounted(() => {
   loadScoreList()
@@ -104,6 +109,10 @@ const openBusinessDetail = (score) => {
     return true
   }
   return false
+}
+
+const handleHistory = (row) => {
+  historyDialogRef.value?.open(row)
 }
 </script>
 

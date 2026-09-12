@@ -42,6 +42,18 @@ export function getScoreById(id) {
 }
 
 /**
+ * 查询成绩的人工批改记录
+ * @param {Number} id 成绩ID
+ * @returns {Promise}
+ */
+export function getScoreHistory(id) {
+  return request({
+    url: `/score/${id}/history`,
+    method: 'get',
+  })
+}
+
+/**
  * 查询课程成绩统计
  * @param {Number} courseId 课程ID
  * @param {String} scoreType 成绩类型（可选）
