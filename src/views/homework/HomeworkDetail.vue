@@ -6,7 +6,8 @@
           <span>{{ homework.title }}</span>
           <el-tag v-if="homework.submitStatus === 0" type="warning">未提交</el-tag>
           <el-tag v-else-if="homework.submitStatus === 1" type="info">已提交</el-tag>
-          <el-tag v-else type="success">已批改</el-tag>
+          <el-tag v-else-if="homework.submitStatus === 2" type="success">已批改</el-tag>
+          <el-tag v-else type="warning">待重交</el-tag>
         </div>
       </template>
 
@@ -19,20 +20,41 @@
         <el-descriptions-item label="提交时间">
           {{ homework.submitTime || '未提交' }}
         </el-descriptions-item>
-        <el-descriptions-item v-if="homework.submitStatus === 2" label="批改时间">
+        <el-descriptions-item v-if="homework.submitStatus >= 2" label="批改时间">
           {{ homework.gradeTime }}
         </el-descriptions-item>
-        <el-descriptions-item v-if="homework.submitStatus === 2" label="成绩">
+        <el-descriptions-item v-if="homework.submitStatus >= 2" label="成绩">
           <span class="score">{{ homework.score }}</span>
         </el-descriptions-item>
       </el-descriptions>
+
+      <el-alert
+        v-if="homework.submitStatus === 3"
+        type="warning"
+        :closable="false"
+        show-icon
+        class="retry-alert"
+      >
+        <template #title>
+          {{
+            isResubmitExpired
+              ? '重交授权已过期，请联系教师调整期限'
+              : `请在 ${homework.resubmitDeadline} 前重新提交`
+          }}
+        </template>
+        <div>{{ homework.resubmitReason }}</div>
+      </el-alert>
 
       <el-divider content-position="left">作业要求</el-divider>
       <div class="content content-text">{{ homework.content }}</div>
 
       <el-divider v-if="homework.attachments?.length" content-position="left">附件</el-divider>
       <div v-if="homework.attachments?.length" class="attachments">
-        <div v-for="file in homework.attachments" :key="getAttachmentUrl(file)" class="attachment-item">
+        <div
+          v-for="file in homework.attachments"
+          :key="getAttachmentUrl(file)"
+          class="attachment-item"
+        >
           <el-icon><Document /></el-icon>
           <span class="filename">{{ getAttachmentName(file) }}</span>
           <el-button type="primary" size="small" text @click="handleDownload(file)">
@@ -41,9 +63,15 @@
         </div>
       </div>
 
-      <el-divider v-if="homework.submitAttachments?.length" content-position="left">我的提交附件</el-divider>
+      <el-divider v-if="homework.submitAttachments?.length" content-position="left"
+        >我的提交附件</el-divider
+      >
       <div v-if="homework.submitAttachments?.length" class="attachments">
-        <div v-for="file in homework.submitAttachments" :key="getAttachmentUrl(file)" class="attachment-item">
+        <div
+          v-for="file in homework.submitAttachments"
+          :key="getAttachmentUrl(file)"
+          class="attachment-item"
+        >
           <el-icon><Document /></el-icon>
           <span class="filename">{{ getAttachmentName(file) }}</span>
           <el-button type="primary" size="small" text @click="handleDownload(file)">
@@ -53,17 +81,29 @@
       </div>
 
       <el-divider v-if="homework.submitContent" content-position="left">提交内容</el-divider>
-      <div
-        v-if="homework.submitContent"
-        class="content content-text"
-      >{{ homework.submitContent }}</div>
+      <div v-if="homework.submitContent" class="content content-text">
+        {{ homework.submitContent }}
+      </div>
 
       <el-divider v-if="homework.feedback" content-position="left">教师评语</el-divider>
       <div v-if="homework.feedback" class="comment">{{ homework.feedback }}</div>
 
       <div class="actions">
-        <el-button v-if="homework.submitStatus !== 2" type="primary" @click="handleSubmit">
-          {{ homework.submitStatus === 1 ? '修改提交' : '提交作业' }}
+        <el-button
+          v-if="homework.submitStatus !== 2"
+          type="primary"
+          :disabled="isResubmitExpired"
+          @click="handleSubmit"
+        >
+          {{
+            isResubmitExpired
+              ? '重交授权已过期'
+              : homework.submitStatus === 3
+                ? '重新提交'
+                : homework.submitStatus === 1
+                  ? '修改提交'
+                  : '提交作业'
+          }}
         </el-button>
         <el-button @click="handleBack">返回</el-button>
       </div>
@@ -88,6 +128,13 @@ const isOverdue = computed(() => {
   if (!homework.value.deadline) return false
   return new Date(homework.value.deadline) < new Date()
 })
+
+const isResubmitExpired = computed(
+  () =>
+    homework.value.submitStatus === 3 &&
+    homework.value.resubmitDeadline &&
+    new Date(homework.value.resubmitDeadline.replace(/-/g, '/')).getTime() <= Date.now(),
+)
 
 onMounted(() => {
   loadHomeworkDetail()
@@ -226,6 +273,10 @@ const handleBack = () => {
 .actions {
   margin-top: 30px;
   text-align: center;
+}
+
+.retry-alert {
+  margin-top: 18px;
 }
 
 .neon-card {

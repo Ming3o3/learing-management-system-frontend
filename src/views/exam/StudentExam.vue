@@ -26,6 +26,18 @@
         <p>题目数量: {{ questions.length }} 题</p>
         <p>开始时间: {{ paperInfo.startTime }}</p>
         <p>结束时间: {{ paperInfo.endTime }}</p>
+        <template v-if="resumeRecord?.status === 5">
+          <p>本次为第 {{ resumeRecord.attemptNo }} 次考试</p>
+          <p>补考截止时间: {{ resumeRecord.retakeDeadline }}</p>
+          <p>补考说明: {{ resumeRecord.retakeReason }}</p>
+        </template>
+        <el-alert
+          v-if="isRetakeExpired"
+          title="补考授权已过期，请联系教师调整期限"
+          type="warning"
+          :closable="false"
+          show-icon
+        />
         <p style="margin-top: 10px; color: #e6a23c">注意: 考试开始后不可中途退出,请确保网络畅通!</p>
         <p style="margin-top: 5px; color: #f56c6c">
           ⚠️ 本场考试启用AI监考，需上传身份照片进行人脸识别验证
@@ -45,9 +57,17 @@
 
       <!-- 开始/继续考试按钮 -->
       <div v-if="examStatus === 'not-started'" style="text-align: center">
-        <el-button type="primary" size="large" @click="handleStartExam">开始考试</el-button>
+        <el-button type="primary" size="large" :disabled="isRetakeExpired" @click="handleStartExam">
+          {{
+            isRetakeExpired
+              ? '补考授权已过期'
+              : resumeRecord?.status === 5
+                ? '开始补考'
+                : '开始考试'
+          }}
+        </el-button>
         <el-button
-          v-if="resumeRecord"
+          v-if="resumeRecord && resumeRecord.status !== 5"
           size="large"
           type="success"
           @click="handleResumeExam"
@@ -246,6 +266,12 @@ let draftTimer = null
 let beforeUnloadHandler = null
 
 const currentQuestion = computed(() => questions.value[currentQuestionIndex.value])
+const isRetakeExpired = computed(
+  () =>
+    resumeRecord.value?.status === 5 &&
+    resumeRecord.value.retakeDeadline &&
+    new Date(resumeRecord.value.retakeDeadline.replace(/-/g, '/')).getTime() <= Date.now(),
+)
 
 onMounted(async () => {
   const paperId = route.params.id
@@ -276,12 +302,16 @@ onMounted(async () => {
 const loadResumeRecord = async (paperId) => {
   try {
     const res = await getMyRecord(paperId)
-    if (res.code === 200 && res.data && (res.data.status === 1 || res.data.status === 4)) {
+    if (
+      res.code === 200 &&
+      res.data &&
+      (res.data.status === 1 || res.data.status === 4 || res.data.status === 5)
+    ) {
       resumeRecord.value = res.data
     } else {
       resumeRecord.value = null
     }
-  } catch (error) {
+  } catch {
     resumeRecord.value = null
   }
 }
@@ -298,13 +328,7 @@ const resumeByRecordId = async (recordIdQuery) => {
       examStatus.value = 'doing'
       await loadDraft(recordId.value)
 
-      if (res.data?.startTime) {
-        const start = new Date(res.data.startTime.replace(/-/g, '/')).getTime()
-        const elapsed = Math.floor((Date.now() - start) / 1000)
-        remainingTime.value = Math.max(paperInfo.value.duration * 60 - elapsed, 0)
-      } else {
-        remainingTime.value = paperInfo.value.duration * 60
-      }
+      remainingTime.value = calculateRemainingTime(res.data)
 
       startTimer()
       startDraftTimer()
@@ -360,9 +384,11 @@ const loadQuestions = async (paperId) => {
     const res = await getQuestionByPaper(paperId)
     if (res.code === 200) {
       questions.value = res.data || []
-      questions.value.filter((question) => question.questionType === 2).forEach((question) => {
-        multipleAnswers[question.id] = []
-      })
+      questions.value
+        .filter((question) => question.questionType === 2)
+        .forEach((question) => {
+          multipleAnswers[question.id] = []
+        })
     }
   } catch (error) {
     ElMessage.error('加载试题失败')
@@ -398,13 +424,7 @@ const handleIdentityVerified = async () => {
       examStatus.value = 'doing'
       await loadDraft(recordId.value)
       // 若为恢复进入，按开始时间计算剩余时长
-      if (res.data?.startTime) {
-        const start = new Date(res.data.startTime.replace(/-/g, '/')).getTime()
-        const elapsed = Math.floor((Date.now() - start) / 1000)
-        remainingTime.value = Math.max(paperInfo.value.duration * 60 - elapsed, 0)
-      } else {
-        remainingTime.value = paperInfo.value.duration * 60 // 转换为秒
-      }
+      remainingTime.value = calculateRemainingTime(res.data)
 
       // 启动倒计时
       startTimer()
@@ -435,13 +455,7 @@ const handleResumeExam = async () => {
       examStatus.value = 'doing'
       await loadDraft(recordId.value)
 
-      if (res.data?.startTime) {
-        const start = new Date(res.data.startTime.replace(/-/g, '/')).getTime()
-        const elapsed = Math.floor((Date.now() - start) / 1000)
-        remainingTime.value = Math.max(paperInfo.value.duration * 60 - elapsed, 0)
-      } else {
-        remainingTime.value = paperInfo.value.duration * 60
-      }
+      remainingTime.value = calculateRemainingTime(res.data)
 
       startTimer()
       startDraftTimer()
@@ -539,6 +553,21 @@ const formatTime = (seconds) => {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
+const calculateRemainingTime = (record) => {
+  let remaining = Number(paperInfo.value.duration || 0) * 60
+  if (record?.startTime) {
+    const start = new Date(record.startTime.replace(/-/g, '/')).getTime()
+    const elapsed = Math.floor((Date.now() - start) / 1000)
+    remaining = Math.max(remaining - elapsed, 0)
+  }
+  if (record?.retakeDeadline) {
+    const deadline = new Date(record.retakeDeadline.replace(/-/g, '/')).getTime()
+    const deadlineRemaining = Math.max(Math.floor((deadline - Date.now()) / 1000), 0)
+    remaining = Math.min(remaining, deadlineRemaining)
+  }
+  return remaining
+}
+
 /**
  * 多选题改变
  */
@@ -595,7 +624,7 @@ const handleSubmitExam = async () => {
 const parseOptions = (options) => {
   try {
     return JSON.parse(options)
-  } catch (error) {
+  } catch {
     return {}
   }
 }

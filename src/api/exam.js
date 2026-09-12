@@ -302,6 +302,23 @@ export function resumeExam(recordId) {
   })
 }
 
+/** 教师为一条已完成记录安排补考 */
+export function authorizeExamRetake(recordId, data) {
+  return request({
+    url: `/exam/record/${recordId}/retake`,
+    method: 'put',
+    data,
+  })
+}
+
+/** 查询被补考替换的历史考试次数 */
+export function getExamAttemptHistory(recordId) {
+  return request({
+    url: `/exam/record/${recordId}/attempts`,
+    method: 'get',
+  })
+}
+
 /**
  * 批改试卷
  * @param {Number} recordId 考试记录ID

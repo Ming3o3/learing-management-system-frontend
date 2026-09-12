@@ -42,6 +42,7 @@
             <el-tag v-if="isStudent && row.submitStatus === 0" type="warning">未提交</el-tag>
             <el-tag v-else-if="isStudent && row.submitStatus === 1" type="info">待批改</el-tag>
             <el-tag v-else-if="isStudent && row.submitStatus === 2" type="success">已批改</el-tag>
+            <el-tag v-else-if="isStudent && row.submitStatus === 3" type="warning">待重交</el-tag>
             <el-tag v-else-if="row.status === 0" type="info">草稿</el-tag>
             <el-tag v-else-if="row.status === 2" type="warning">已截止</el-tag>
             <el-tag v-else type="success">已发布</el-tag>
@@ -59,9 +60,18 @@
               v-if="isStudent && row.submitStatus !== 2"
               type="success"
               size="small"
+              :disabled="row.submitStatus === 3 && isDeadlineExpired(row.resubmitDeadline)"
               @click="handleSubmit(row)"
             >
-              {{ row.submitStatus === 1 ? '修改提交' : '提交作业' }}
+              {{
+                row.submitStatus === 3 && isDeadlineExpired(row.resubmitDeadline)
+                  ? '重交已过期'
+                  : row.submitStatus === 3
+                    ? '重新提交'
+                    : row.submitStatus === 1
+                      ? '修改提交'
+                      : '提交作业'
+              }}
             </el-button>
             <el-button v-if="!isStudent" type="success" size="small" @click="handleGrade(row)">
               批改
@@ -116,6 +126,8 @@ const pagination = reactive({
 
 const tableData = ref([])
 const isStudent = computed(() => userStore.isStudent)
+const isDeadlineExpired = (value) =>
+  Boolean(value) && new Date(value.replace(/-/g, '/')).getTime() <= Date.now()
 
 onMounted(async () => {
   await loadMyCourses()

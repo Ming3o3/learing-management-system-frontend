@@ -9,7 +9,17 @@
 
       <el-alert
         v-if="isOverdue"
-        title="作业已过截止时间"
+        :title="isResubmitExpired ? '重交授权已过期，请联系教师调整期限' : '作业已过截止时间'"
+        type="warning"
+        :closable="false"
+        show-icon
+        class="alert"
+      />
+
+      <el-alert
+        v-if="isAuthorizedResubmit"
+        :title="`重交截止时间：${homework.resubmitDeadline}`"
+        :description="homework.resubmitReason"
         type="warning"
         :closable="false"
         show-icon
@@ -36,8 +46,13 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
-            {{ submitLoading ? '提交中...' : '提交作业' }}
+          <el-button
+            type="primary"
+            :loading="submitLoading"
+            :disabled="isResubmitExpired"
+            @click="handleSubmit"
+          >
+            {{ isResubmitExpired ? '重交授权已过期' : submitLoading ? '提交中...' : '提交作业' }}
           </el-button>
           <el-button @click="handleCancel">取消</el-button>
         </el-form-item>
@@ -81,9 +96,15 @@ const formRules = {
 }
 
 const isOverdue = computed(() => {
-  if (!homework.value.deadline) return false
-  return new Date(homework.value.deadline) < new Date()
+  const deadline = isAuthorizedResubmit.value
+    ? homework.value.resubmitDeadline
+    : homework.value.deadline
+  if (!deadline) return false
+  return new Date(deadline.replace(/-/g, '/')).getTime() <= Date.now()
 })
+
+const isAuthorizedResubmit = computed(() => homework.value.submitStatus === 3)
+const isResubmitExpired = computed(() => isAuthorizedResubmit.value && isOverdue.value)
 
 onMounted(async () => {
   await loadHomeworkDetail()
@@ -106,6 +127,10 @@ const loadHomeworkDetail = async () => {
 }
 
 const handleSubmit = async () => {
+  if (isResubmitExpired.value) {
+    ElMessage.warning('重交授权已过期，请联系教师调整期限')
+    return
+  }
   try {
     await submitFormRef.value.validate()
 
@@ -133,7 +158,7 @@ const handleSubmit = async () => {
 
     await submitHomework(formData)
 
-    ElMessage.success('提交成功')
+    ElMessage.success(isAuthorizedResubmit.value ? '重交成功，等待教师重新批改' : '提交成功')
     router.push('/homework')
   } catch (error) {
     if (error !== 'cancel') {

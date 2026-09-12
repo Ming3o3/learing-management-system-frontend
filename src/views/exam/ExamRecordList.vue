@@ -49,6 +49,9 @@
           <el-table-column prop="courseName" label="课程名称" width="140" show-overflow-tooltip />
           <el-table-column prop="studentName" label="学生姓名" width="120" />
           <el-table-column prop="studentNo" label="学号" width="150" />
+          <el-table-column label="次数" width="90" align="center">
+            <template #default="{ row }">第 {{ row.attemptNo || 1 }} 次</template>
+          </el-table-column>
           <el-table-column prop="startTime" label="开始时间" width="160" />
           <el-table-column prop="submitTime" label="提交时间" width="160" />
           <el-table-column prop="usedDuration" label="用时(分钟)" width="120">
@@ -77,10 +80,11 @@
               <el-tag v-else-if="row.status === 1" type="warning">进行中</el-tag>
               <el-tag v-else-if="row.status === 2" type="primary">已提交</el-tag>
               <el-tag v-else-if="row.status === 4" type="danger">已中断</el-tag>
+              <el-tag v-else-if="row.status === 5" type="warning">待补考</el-tag>
               <el-tag v-else type="success">已批改</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="150" fixed="right">
+          <el-table-column label="操作" width="250" fixed="right">
             <template #default="{ row }">
               <el-button type="primary" size="small" @click="handleView(row)">查看</el-button>
               <el-button
@@ -90,6 +94,22 @@
                 @click="handleCorrect(row)"
               >
                 批改
+              </el-button>
+              <el-button
+                v-if="row.status === 3 || row.status === 5"
+                type="warning"
+                link
+                @click="openRetake(row)"
+              >
+                {{ row.status === 5 ? '调整补考' : '安排补考' }}
+              </el-button>
+              <el-button
+                v-if="(row.attemptNo || 1) > 1"
+                type="info"
+                link
+                @click="openAttemptHistory(row)"
+              >
+                历史
               </el-button>
             </template>
           </el-table-column>
@@ -113,6 +133,9 @@
         <el-table v-loading="loading" :data="myRecords" border stripe>
           <el-table-column prop="paperName" label="试卷名称" width="200" show-overflow-tooltip />
           <el-table-column prop="courseName" label="课程名称" width="140" show-overflow-tooltip />
+          <el-table-column label="次数" width="90" align="center">
+            <template #default="{ row }">第 {{ row.attemptNo || 1 }} 次</template>
+          </el-table-column>
           <el-table-column prop="startTime" label="开始时间" width="160" />
           <el-table-column prop="submitTime" label="提交时间" width="160" />
           <el-table-column prop="totalScore" label="得分" width="100">
@@ -136,6 +159,7 @@
               <el-tag v-else-if="row.status === 1" type="warning">进行中</el-tag>
               <el-tag v-else-if="row.status === 2" type="primary">已提交</el-tag>
               <el-tag v-else-if="row.status === 4" type="danger">已中断</el-tag>
+              <el-tag v-else-if="row.status === 5" type="warning">待补考</el-tag>
               <el-tag v-else type="success">已批改</el-tag>
             </template>
           </el-table-column>
@@ -143,12 +167,27 @@
             <template #default="{ row }">
               <el-button type="primary" size="small" @click="handleView(row)">查看</el-button>
               <el-button
-                v-if="row.status === 1 || row.status === 4"
+                v-if="row.status === 1 || row.status === 4 || row.status === 5"
                 type="success"
                 size="small"
+                :disabled="row.status === 5 && isDeadlineExpired(row.retakeDeadline)"
                 @click="handleResume(row)"
               >
-                继续考试
+                {{
+                  row.status === 5
+                    ? isDeadlineExpired(row.retakeDeadline)
+                      ? '补考已过期'
+                      : '开始补考'
+                    : '继续考试'
+                }}
+              </el-button>
+              <el-button
+                v-if="(row.attemptNo || 1) > 1"
+                type="info"
+                link
+                @click="openAttemptHistory(row)"
+              >
+                历史
               </el-button>
             </template>
           </el-table-column>
@@ -188,6 +227,15 @@
             <el-tag :type="getStatusTagType(recordDetail.status)">
               {{ getStatusLabel(recordDetail.status) }}
             </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="考试次数">
+            第 {{ recordDetail.attemptNo || 1 }} 次
+          </el-descriptions-item>
+          <el-descriptions-item v-if="recordDetail.status === 5" label="补考截止时间">
+            {{ recordDetail.retakeDeadline }}
+          </el-descriptions-item>
+          <el-descriptions-item v-if="recordDetail.status === 5" label="补考说明">
+            {{ recordDetail.retakeReason }}
           </el-descriptions-item>
         </el-descriptions>
 
@@ -245,7 +293,10 @@
                       <span :style="{ color: answer.isCorrect === 1 ? '#67c23a' : '#f56c6c' }">
                         {{ answer.studentAnswer || '未作答' }}
                       </span>
-                      <span v-if="getOptionContent(answer.studentAnswer, answer.options)" class="option-desc">
+                      <span
+                        v-if="getOptionContent(answer.studentAnswer, answer.options)"
+                        class="option-desc"
+                      >
                         {{ getOptionContent(answer.studentAnswer, answer.options) }}
                       </span>
                     </div>
@@ -253,7 +304,10 @@
                   <el-descriptions-item label="正确答案">
                     <div class="answer-with-option">
                       <span style="color: #67c23a">{{ answer.correctAnswer }}</span>
-                      <span v-if="getOptionContent(answer.correctAnswer, answer.options)" class="option-desc">
+                      <span
+                        v-if="getOptionContent(answer.correctAnswer, answer.options)"
+                        class="option-desc"
+                      >
                         {{ getOptionContent(answer.correctAnswer, answer.options) }}
                       </span>
                     </div>
@@ -278,6 +332,62 @@
         <el-empty v-else description="暂无答题记录" />
       </div>
     </el-dialog>
+
+    <el-dialog
+      v-model="retakeVisible"
+      title="安排补考"
+      width="min(560px, calc(100vw - 32px))"
+      :close-on-click-modal="false"
+    >
+      <el-form label-position="top">
+        <el-form-item label="学生">
+          {{ activeRecord.studentName }}（{{ activeRecord.studentNo }}）
+        </el-form-item>
+        <el-form-item label="补考截止时间" required>
+          <el-date-picker
+            v-model="retakeForm.deadline"
+            type="datetime"
+            value-format="YYYY-MM-DDTHH:mm:ss"
+            format="YYYY-MM-DD HH:mm:ss"
+            :disabled-date="disablePastDate"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="补考说明" required>
+          <el-input
+            v-model="retakeForm.reason"
+            type="textarea"
+            :rows="4"
+            maxlength="1000"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="retakeVisible = false">取消</el-button>
+        <el-button type="primary" :loading="retakeSaving" @click="saveRetake"> 确认安排 </el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="historyVisible" title="历史考试记录" width="min(720px, calc(100vw - 32px))">
+      <el-table v-loading="historyLoading" :data="attemptHistory" border>
+        <el-table-column label="次数" width="90">
+          <template #default="{ row }">第 {{ row.attemptNo }} 次</template>
+        </el-table-column>
+        <el-table-column prop="startTime" label="开始时间" width="170" />
+        <el-table-column prop="submitTime" label="提交时间" width="170" />
+        <el-table-column label="得分" width="90">
+          <template #default="{ row }">{{ row.totalScore ?? '-' }}</template>
+        </el-table-column>
+        <el-table-column
+          prop="archiveReason"
+          label="补考原因"
+          min-width="180"
+          show-overflow-tooltip
+        />
+      </el-table>
+      <el-empty v-if="!historyLoading && attemptHistory.length === 0" description="暂无历史考试" />
+    </el-dialog>
   </div>
 </template>
 
@@ -289,7 +399,13 @@ import { ElMessage } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import AiAnalyzer from '@/components/AiAnalyzer.vue'
 import { getCourseList } from '@/api/course'
-import { getRecordPage, getMyRecords, getRecordDetailById } from '@/api/exam'
+import {
+  authorizeExamRetake,
+  getExamAttemptHistory,
+  getRecordPage,
+  getMyRecords,
+  getRecordDetailById,
+} from '@/api/exam'
 
 const route = useRoute()
 const router = useRouter()
@@ -300,7 +416,11 @@ const handleResume = (row) => {
   if (!row || !row.paperId) {
     return
   }
-  router.push(`/exam/take/${row.paperId}?recordId=${row.id}`)
+  if (row.status === 5) {
+    router.push(`/exam/take/${row.paperId}`)
+  } else {
+    router.push(`/exam/take/${row.paperId}?recordId=${row.id}`)
+  }
 }
 const userStore = useUserStore()
 
@@ -315,6 +435,13 @@ const myRecords = ref([])
 const viewDialogVisible = ref(false)
 const recordDetail = ref({})
 const targetRecordHandled = ref(false)
+const retakeVisible = ref(false)
+const retakeSaving = ref(false)
+const historyVisible = ref(false)
+const historyLoading = ref(false)
+const activeRecord = ref({})
+const attemptHistory = ref([])
+const retakeForm = reactive({ deadline: '', reason: '' })
 
 const searchForm = reactive({
   paperName: '',
@@ -463,6 +590,61 @@ const handleCorrect = (row) => {
   })
 }
 
+const openRetake = (row) => {
+  activeRecord.value = row
+  retakeForm.deadline = defaultDeadline()
+  retakeForm.reason = row.status === 5 ? row.retakeReason || '' : ''
+  retakeVisible.value = true
+}
+
+const saveRetake = async () => {
+  if (!retakeForm.deadline || !retakeForm.reason.trim()) {
+    ElMessage.warning('请填写补考截止时间和说明')
+    return
+  }
+  retakeSaving.value = true
+  try {
+    await authorizeExamRetake(activeRecord.value.id, {
+      deadline: retakeForm.deadline,
+      reason: retakeForm.reason.trim(),
+    })
+    ElMessage.success(
+      activeRecord.value.status === 5 ? '补考期限已更新' : '补考已安排，原成绩已转入历史',
+    )
+    retakeVisible.value = false
+    await loadRecordList()
+  } catch (error) {
+    console.error('Authorize exam retake failed:', error)
+  } finally {
+    retakeSaving.value = false
+  }
+}
+
+const openAttemptHistory = async (row) => {
+  activeRecord.value = row
+  attemptHistory.value = []
+  historyVisible.value = true
+  historyLoading.value = true
+  try {
+    const res = await getExamAttemptHistory(row.id)
+    attemptHistory.value = res.data || []
+  } catch (error) {
+    console.error('Load exam attempt history failed:', error)
+  } finally {
+    historyLoading.value = false
+  }
+}
+
+const defaultDeadline = () => {
+  const value = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  const offset = value.getTimezoneOffset() * 60 * 1000
+  return new Date(value.getTime() - offset).toISOString().slice(0, 19)
+}
+
+const disablePastDate = (date) => date.getTime() < Date.now() - 24 * 60 * 60 * 1000
+const isDeadlineExpired = (value) =>
+  Boolean(value) && new Date(value.replace(/-/g, '/')).getTime() <= Date.now()
+
 /**
  * 获取分数标签类型
  */
@@ -480,6 +662,7 @@ const getStatusLabel = (status) => {
   if (status === 1) return '进行中'
   if (status === 2) return '已提交'
   if (status === 4) return '已中断'
+  if (status === 5) return '待补考'
   return '已批改'
 }
 
@@ -491,6 +674,7 @@ const getStatusTagType = (status) => {
   if (status === 1) return 'warning'
   if (status === 2) return 'primary'
   if (status === 4) return 'danger'
+  if (status === 5) return 'warning'
   return 'success'
 }
 
@@ -521,7 +705,10 @@ const getOptionContent = (answerKeys, optionsStr) => {
   if (!answerKeys || !optionsStr) return ''
   const opts = parseOptions(optionsStr)
   if (!opts || typeof opts !== 'object') return ''
-  const keys = String(answerKeys).split(/[,，]/).map((k) => k.trim()).filter(Boolean)
+  const keys = String(answerKeys)
+    .split(/[,，]/)
+    .map((k) => k.trim())
+    .filter(Boolean)
   const parts = keys.map((k) => (opts[k] != null ? `${k}. ${opts[k]}` : k))
   return parts.length ? parts.join(' / ') : ''
 }

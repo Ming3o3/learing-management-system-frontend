@@ -12,7 +12,7 @@ export function getHomeworkList(params) {
   return request({
     url: '/homework/list',
     method: 'get',
-    params
+    params,
   })
 }
 
@@ -24,7 +24,7 @@ export function getHomeworkList(params) {
 export function getHomeworkById(id) {
   return request({
     url: `/homework/${id}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -37,7 +37,7 @@ export function createHomework(data) {
   return request({
     url: '/homework',
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -50,7 +50,7 @@ export function updateHomework(data) {
   return request({
     url: '/homework',
     method: 'put',
-    data
+    data,
   })
 }
 
@@ -62,7 +62,7 @@ export function updateHomework(data) {
 export function deleteHomework(id) {
   return request({
     url: `/homework/${id}`,
-    method: 'delete'
+    method: 'delete',
   })
 }
 
@@ -74,7 +74,7 @@ export function deleteHomework(id) {
 export function publishHomework(id) {
   return request({
     url: `/homework/publish/${id}`,
-    method: 'put'
+    method: 'put',
   })
 }
 
@@ -87,7 +87,7 @@ export function submitHomework(data) {
   return request({
     url: '/homework/submit',
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -99,7 +99,7 @@ export function submitHomework(data) {
 export function getSubmitList(homeworkId) {
   return request({
     url: `/homework/${homeworkId}/submits`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -120,7 +120,7 @@ export function getHomeworkSubmissions(homeworkId) {
 export function getMySubmit(homeworkId) {
   return request({
     url: `/homework/${homeworkId}/my-submit`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -133,6 +133,23 @@ export function gradeHomework(data) {
   return request({
     url: '/homework/grade',
     method: 'put',
-    data
+    data,
+  })
+}
+
+/** 教师授权学生重交作业 */
+export function authorizeHomeworkResubmission(submissionId, data) {
+  return request({
+    url: `/homework/submission/${submissionId}/resubmit`,
+    method: 'put',
+    data,
+  })
+}
+
+/** 查询作业提交的历史版本 */
+export function getHomeworkRevisions(submissionId) {
+  return request({
+    url: `/homework/submission/${submissionId}/revisions`,
+    method: 'get',
   })
 }
