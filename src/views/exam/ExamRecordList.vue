@@ -283,7 +283,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
@@ -291,6 +291,7 @@ import AiAnalyzer from '@/components/AiAnalyzer.vue'
 import { getCourseList } from '@/api/course'
 import { getRecordPage, getMyRecords, getRecordDetailById } from '@/api/exam'
 
+const route = useRoute()
 const router = useRouter()
 /**
  * 恢复考试
@@ -305,7 +306,6 @@ const userStore = useUserStore()
 
 const isTeacher = computed(() => userStore.isTeacher)
 const isAdmin = computed(() => userStore.isAdmin)
-const isStudent = computed(() => userStore.isStudent)
 
 const loading = ref(false)
 const detailLoading = ref(false)
@@ -314,6 +314,7 @@ const tableData = ref([])
 const myRecords = ref([])
 const viewDialogVisible = ref(false)
 const recordDetail = ref({})
+const targetRecordHandled = ref(false)
 
 const searchForm = reactive({
   paperName: '',
@@ -409,12 +410,26 @@ const loadMyRecords = async () => {
     const res = await getMyRecords()
     if (res.code === 200) {
       myRecords.value = res.data || []
+      openTargetRecord()
     }
   } catch (error) {
     ElMessage.error('加载考试记录失败')
     console.error(error)
   } finally {
     loading.value = false
+  }
+}
+
+const openTargetRecord = () => {
+  if (targetRecordHandled.value || !route.query.recordId) return
+  targetRecordHandled.value = true
+  const target = myRecords.value.find(
+    (record) => String(record.id) === String(route.query.recordId),
+  )
+  if (target) {
+    handleView(target)
+  } else {
+    ElMessage.warning('未找到对应的考试记录')
   }
 }
 

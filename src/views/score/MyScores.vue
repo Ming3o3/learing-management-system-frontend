@@ -53,8 +53,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { getMyScores, getScoreById } from '@/api/score'
 
+const router = useRouter()
 const loading = ref(false)
 
 const tableData = ref([])
@@ -79,6 +81,8 @@ const loadScoreList = async () => {
 
 const handleView = async (row) => {
   if (!row?.id) return
+  if (openBusinessDetail(row)) return
+
   try {
     const res = await getScoreById(row.id)
     selectedScore.value = res.data || row
@@ -86,7 +90,20 @@ const handleView = async (row) => {
     console.error('Load score detail failed:', error)
     selectedScore.value = row
   }
+  if (openBusinessDetail(selectedScore.value)) return
   detailVisible.value = true
+}
+
+const openBusinessDetail = (score) => {
+  if (score.scoreType === 2 && score.relatedId) {
+    router.push({ name: 'ExamRecordList', query: { recordId: score.relatedId } })
+    return true
+  }
+  if (score.scoreType === 1 && score.homeworkId) {
+    router.push({ name: 'HomeworkDetail', params: { id: score.homeworkId } })
+    return true
+  }
+  return false
 }
 </script>
 
