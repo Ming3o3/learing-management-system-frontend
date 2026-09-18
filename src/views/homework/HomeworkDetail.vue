@@ -299,14 +299,14 @@ const handleBack = () => {
   --el-descriptions-item-bordered-content-background: rgba(10, 26, 48, 0.8);
 }
 
-:deep(.el-descriptions__label) {
+:deep(.el-descriptions__label.el-descriptions__cell.is-bordered-label) {
   color: #e9fbff;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-shadow: 0 0 8px rgba(0, 229, 255, 0.25);
 }
 
-:deep(.el-descriptions__content) {
+:deep(.el-descriptions__content.el-descriptions__cell.is-bordered-content) {
   color: #f5fbff;
   text-shadow: 0 0 6px rgba(0, 229, 255, 0.2);
 }
