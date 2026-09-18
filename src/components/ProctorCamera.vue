@@ -495,14 +495,16 @@ async function start() {
 /**
  * 停止监考
  */
-async function stop() {
+async function stop(endSession = true) {
   try {
     // 停止捕获
     stopFrameCapture()
     stopHeartbeat()
 
-    // 结束会话
-    await proctorStore.endSession()
+    // 提交试卷时，后端会在保存答案的同一事务中结束会话；此处只需清理本地资源，避免重复调用结束接口。
+    if (endSession) {
+      await proctorStore.endSession()
+    }
 
     // 清理资源
     proctorStore.cleanup()

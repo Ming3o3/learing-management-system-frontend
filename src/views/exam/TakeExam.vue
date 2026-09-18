@@ -282,7 +282,8 @@ const handleSubmit = async (autoSubmit = false, reason = '') => {
 
     // 停止监考
     if (proctorCameraRef.value) {
-      await proctorCameraRef.value.stop()
+      // 提交接口已在后端事务中结束监考，这里只清理本地资源
+      await proctorCameraRef.value.stop(false)
     }
 
     router.push('/exams')

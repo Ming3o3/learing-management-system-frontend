@@ -101,14 +101,22 @@ export const useProctorStore = defineStore('proctor', () => {
    * 结束监考会话
    */
   async function endSession() {
+    // 组件销毁时可能会调用 stop()，但此时监考会话可能还未启动或已经结束。
+    // 不要把初始状态的 null ID 发给后端。
+    const { examId, studentId } = sessionInfo.value
+    if (!isMonitoring.value || examId == null || studentId == null) {
+      cleanup()
+      return null
+    }
+
     try {
       const duration = sessionInfo.value.startTime
         ? Math.floor((new Date() - sessionInfo.value.startTime) / 1000)
         : 0
 
       await proctorApi.endProctorSession({
-        examId: sessionInfo.value.examId,
-        studentId: sessionInfo.value.studentId,
+        examId,
+        studentId,
         duration,
         violationCount: violationCount.value,
       })
