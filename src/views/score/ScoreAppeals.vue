@@ -3,7 +3,12 @@
     <el-card class="search-card neon-card">
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="全部状态" clearable>
+          <el-select
+            v-model="searchForm.status"
+            placeholder="全部状态"
+            clearable
+            class="status-select"
+          >
             <el-option label="待处理" :value="0" />
             <el-option label="申诉成立" :value="1" />
             <el-option label="申诉不成立" :value="2" />
@@ -399,6 +404,10 @@ onMounted(() => {
   width: 220px;
 }
 
+.status-select {
+  width: 160px;
+}
+
 .card-header {
   display: flex;
   align-items: center;
@@ -446,6 +455,10 @@ onMounted(() => {
   }
 
   .course-select {
+    width: 100%;
+  }
+
+  .status-select {
     width: 100%;
   }
 }
