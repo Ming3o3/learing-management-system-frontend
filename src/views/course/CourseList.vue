@@ -56,7 +56,7 @@
         </el-table-column>
         <el-table-column prop="startTime" label="开课时间" width="120" />
         <el-table-column prop="endTime" label="结课时间" width="120" />
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="操作" width="350" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" size="small" @click="handleView(row)">查看</el-button>
             <template v-if="isStudent">
@@ -72,6 +72,15 @@
               <el-button v-else type="info" size="small" disabled>已报名</el-button>
             </template>
             <template v-if="isTeacher || isAdmin">
+              <el-button
+                v-if="row.status === 0"
+                type="success"
+                size="small"
+                :loading="publishingId === row.id"
+                @click="handlePublish(row)"
+              >
+                发布
+              </el-button>
               <el-button type="warning" size="small" @click="handleEdit(row)">编辑</el-button>
               <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
             </template>
@@ -100,7 +109,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
-import { getCoursePage, deleteCourse, enrollCourse } from '@/api/course'
+import { getCoursePage, deleteCourse, enrollCourse, publishCourse } from '@/api/course'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -110,6 +119,7 @@ const isTeacher = computed(() => userStore.isTeacher)
 const isStudent = computed(() => userStore.isStudent)
 
 const loading = ref(false)
+const publishingId = ref(null)
 
 const searchForm = reactive({
   courseName: '',
@@ -191,6 +201,32 @@ const handleDelete = async (row) => {
     if (error !== 'cancel') {
       console.error('Delete course failed:', error)
     }
+  }
+}
+
+const handlePublish = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      `发布课程"${row.courseName}"后，学生即可在课程列表中查看并报名，确认发布吗？`,
+      '发布课程',
+      {
+        confirmButtonText: '确认发布',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
+
+    publishingId.value = row.id
+    await publishCourse(row.id)
+    ElMessage.success('课程已发布，学生现在可以报名')
+    await loadCourseList()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('Publish course failed:', error)
+      ElMessage.error('发布失败')
+    }
+  } finally {
+    publishingId.value = null
   }
 }
 

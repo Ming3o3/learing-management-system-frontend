@@ -179,6 +179,18 @@ export function enrollCourse(courseId) {
 }
 
 /**
+ * 检查当前学生是否已报名课程
+ * @param {Number} courseId 课程ID
+ * @returns {Promise}
+ */
+export function checkEnrollment(courseId) {
+  return request({
+    url: `/course/check-enrollment/${courseId}`,
+    method: 'get',
+  })
+}
+
+/**
  * 学生退课
  * @param {Number} courseId 课程ID
  * @returns {Promise}

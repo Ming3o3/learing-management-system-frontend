@@ -5,6 +5,23 @@
         <div class="card-header">
           <span>{{ course.courseName }}</span>
           <div class="header-actions">
+            <el-button
+              v-if="(isTeacher || isAdmin) && course.status === 0"
+              type="success"
+              :loading="publishLoading"
+              @click="handlePublish"
+            >
+              发布课程
+            </el-button>
+            <el-button
+              v-if="isStudent && course.status === 1 && !isEnrolled"
+              type="success"
+              :loading="enrollLoading"
+              @click="handleEnroll"
+            >
+              报名课程
+            </el-button>
+            <el-tag v-else-if="isStudent && isEnrolled" type="success">已报名</el-tag>
             <el-button v-if="(isTeacher || isAdmin) && course.status !== 2" type="primary" @click="handleEdit">
               编辑课程
             </el-button>
@@ -118,7 +135,14 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { VideoCamera, Document, Folder } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
-import { getCourseById, getCourseStudents, removeStudentFromCourse } from '@/api/course'
+import {
+  checkEnrollment,
+  enrollCourse,
+  getCourseById,
+  getCourseStudents,
+  publishCourse,
+  removeStudentFromCourse,
+} from '@/api/course'
 import { getContentList } from '@/api/content'
 
 const router = useRouter()
@@ -127,8 +151,12 @@ const userStore = useUserStore()
 
 const isAdmin = computed(() => userStore.isAdmin)
 const isTeacher = computed(() => userStore.isTeacher)
+const isStudent = computed(() => userStore.isStudent)
 
 const loading = ref(false)
+const publishLoading = ref(false)
+const enrollLoading = ref(false)
+const isEnrolled = ref(false)
 const course = ref({})
 const resources = ref([])
 const students = ref([])
@@ -143,16 +171,35 @@ const loadCourseDetail = async () => {
     const res = await getCourseById(route.params.id)
     course.value = res.data
 
-    const tasks = [loadResources()]
     if (isTeacher.value || isAdmin.value) {
-      tasks.push(loadStudents())
+      await Promise.all([loadResources(), loadStudents()])
+    } else if (isStudent.value) {
+      // 未报名学生不请求受保护的资源接口，避免出现误导性的权限错误提示。
+      await loadEnrollment()
+      if (isEnrolled.value) {
+        await loadResources()
+      }
     }
-    await Promise.all(tasks)
   } catch (error) {
     console.error('Load course detail failed:', error)
     ElMessage.error('加载课程详情失败')
   } finally {
     loading.value = false
+  }
+}
+
+const loadEnrollment = async () => {
+  if (course.value.status !== 1) {
+    isEnrolled.value = false
+    return
+  }
+
+  try {
+    const res = await checkEnrollment(route.params.id)
+    isEnrolled.value = res.data === true
+  } catch (error) {
+    console.error('Load enrollment status failed:', error)
+    isEnrolled.value = false
   }
 }
 
@@ -191,17 +238,63 @@ const handleBack = () => {
   router.back()
 }
 
+const handlePublish = async () => {
+  try {
+    await ElMessageBox.confirm(
+      `发布课程"${course.value.courseName}"后，学生即可在课程列表中查看并报名，确认发布吗？`,
+      '发布课程',
+      {
+        confirmButtonText: '确认发布',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
+
+    publishLoading.value = true
+    await publishCourse(route.params.id)
+    ElMessage.success('课程已发布，学生现在可以报名')
+    await loadCourseDetail()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('Publish course failed:', error)
+      ElMessage.error('发布失败')
+    }
+  } finally {
+    publishLoading.value = false
+  }
+}
+
+const handleEnroll = async () => {
+  try {
+    await ElMessageBox.confirm(`确定报名课程"${course.value.courseName}"吗？`, '报名课程', {
+      confirmButtonText: '确认报名',
+      cancelButtonText: '取消',
+      type: 'info',
+    })
+
+    enrollLoading.value = true
+    await enrollCourse(route.params.id)
+    isEnrolled.value = true
+    course.value.enrolledCount = (Number(course.value.enrolledCount) || 0) + 1
+    await loadResources()
+    ElMessage.success('报名成功，已加入我的课程')
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('Enroll course failed:', error)
+      ElMessage.error('报名失败')
+    }
+  } finally {
+    enrollLoading.value = false
+  }
+}
+
 const handleGoToResources = () => {
   router.push({ name: 'CourseResources', params: { id: route.params.id } })
 }
 
-const handleViewResource = (content) => {
+const handleViewResource = () => {
   // 直接跳转到资源页面
   router.push({ name: 'CourseResources', params: { id: route.params.id } })
-}
-
-const handleUploadResource = () => {
-  handleGoToResources()
 }
 
 const handleRemoveStudent = async (row) => {

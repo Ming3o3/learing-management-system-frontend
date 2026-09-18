@@ -76,10 +76,12 @@
         </el-form-item>
 
         <el-form-item label="课程状态" prop="status">
-          <el-radio-group v-model="courseForm.status" :disabled="isEdit">
+          <el-tag v-if="!isEdit" type="info">草稿</el-tag>
+          <span v-if="!isEdit" class="form-tip">提交后请在课程列表点击“发布”，学生才能查看并报名</span>
+          <el-radio-group v-else v-model="courseForm.status" disabled>
             <el-radio :label="0">草稿</el-radio>
-            <el-radio :label="1">发布</el-radio>
-            <el-radio :label="2">归档</el-radio>
+            <el-radio :label="1">已发布</el-radio>
+            <el-radio :label="2">已归档</el-radio>
           </el-radio-group>
         </el-form-item>
 
@@ -287,5 +289,11 @@ const handleCancel = () => {
   border-color: #00e5ff;
   background: #00e5ff;
   box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+}
+
+.form-tip {
+  margin-left: 10px;
+  color: #9fc6e8;
+  font-size: 12px;
 }
 </style>
