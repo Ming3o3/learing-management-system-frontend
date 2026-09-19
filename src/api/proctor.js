@@ -167,7 +167,7 @@ export function uploadSnapshot(formData) {
 }
 
 /**
- * 注册考生身份信息（上传身份照片）
+ * 注册考生身份信息（由 LMS 统一协调 AutoOEP 和本地记录）
  * @param {Object} data - 注册数据
  * @param {number} data.examId - 考试ID
  * @param {number} data.studentId - 学生ID
@@ -177,19 +177,19 @@ export function uploadSnapshot(formData) {
  */
 export function registerStudentIdentity(data) {
   const formData = new FormData()
-  formData.append('exam_id', data.examId)
-  formData.append('student_id', data.studentId)
-  formData.append('target_image', data.identityPhoto)
+  formData.append('examId', data.examId)
+  formData.append('studentId', data.studentId)
+  formData.append('identityPhoto', data.identityPhoto)
 
-  const base = import.meta.env.VITE_PROCTOR_API_URL || 'http://localhost:8000'
   return request({
-    url: `${base}/api/exam/register`,
+    url: '/proctor/identity/register',
     method: 'post',
     data: formData,
+    // 后端还需要转发照片给 AutoOEP；应长于后端 15 秒读取超时。
+    timeout: 25000,
     headers: {
       'Content-Type': 'multipart/form-data',
     },
-    skipCodeCheck: true,
   })
 }
 

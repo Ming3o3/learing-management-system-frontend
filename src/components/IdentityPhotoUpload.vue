@@ -337,7 +337,9 @@ async function handleSubmit() {
     }
   } catch (error) {
     console.error('身份验证失败:', error)
-    ElMessage.error(error.message || '身份验证失败，请重试')
+    if (!error.__messageShown) {
+      ElMessage.error(error.message || '身份验证失败，请重试')
+    }
   }
 }
 

@@ -433,7 +433,9 @@ const handleIdentityVerified = async () => {
       ElMessage.success('身份验证成功，考试已开始！')
     }
   } catch (error) {
-    ElMessage.error(error.message || '开始考试失败')
+    if (!error.__messageShown) {
+      ElMessage.error(error.message || '开始考试失败')
+    }
     console.error(error)
     examStatus.value = 'not-started'
   } finally {

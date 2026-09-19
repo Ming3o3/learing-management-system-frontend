@@ -70,7 +70,9 @@ service.interceptors.response.use(
         router.push('/login')
       }
 
-      return Promise.reject(new Error(res.message || 'Error'))
+      const error = new Error(res.message || 'Error')
+      error.__messageShown = true
+      return Promise.reject(error)
     }
 
     return res
@@ -82,10 +84,11 @@ service.interceptors.response.use(
 
     if (error.response) {
       const { status, data } = error.response
+      const message = data?.message || data?.detail || '网络请求失败'
 
       switch (status) {
         case 400:
-          ElMessage.error(data.message || '请求参数错误')
+          ElMessage.error(message || '请求参数错误')
           break
         case 401:
           ElMessage.error('未授权，请重新登录')
@@ -103,12 +106,15 @@ service.interceptors.response.use(
           ElMessage.error('服务器内部错误')
           break
         default:
-          ElMessage.error(data.message || '网络请求失败')
+          ElMessage.error(message)
       }
+      error.__messageShown = true
     } else if (error.request) {
       ElMessage.error('网络请求超时，请检查网络连接')
+      error.__messageShown = true
     } else {
       ElMessage.error('请求配置错误')
+      error.__messageShown = true
     }
 
     return Promise.reject(error)

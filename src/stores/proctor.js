@@ -309,12 +309,12 @@ export const useProctorStore = defineStore('proctor', () => {
         identityPhoto: identityPhoto.value,
       })
 
-      if (response.status === 'success' || response.code === 200) {
+      if (response.code === 200 && response.data) {
         isIdentityRegistered.value = true
         console.log('✅ 考生身份注册成功')
         return true
       }
-      return false
+      throw new Error(response.message || '身份记录保存失败')
     } catch (error) {
       console.error('❌ 考生身份注册失败:', error)
       throw error
