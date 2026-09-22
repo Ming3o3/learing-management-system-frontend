@@ -8,7 +8,7 @@
             <el-icon class="stat-icon courses"><Reading /></el-icon>
             <div class="stat-info">
               <h3 class="stat-value">{{ stats.courses }}</h3>
-              <p class="stat-label">我的课程</p>
+              <p class="stat-label">{{ isAdmin ? '课程总数' : '我的课程' }}</p>
             </div>
           </div>
         </el-card>
@@ -20,7 +20,7 @@
             <el-icon class="stat-icon homework"><Edit /></el-icon>
             <div class="stat-info">
               <h3 class="stat-value">{{ stats.homework }}</h3>
-              <p class="stat-label">待提交作业</p>
+              <p class="stat-label">{{ isStudent ? '待提交作业' : '待处理作业' }}</p>
             </div>
           </div>
         </el-card>
@@ -32,7 +32,7 @@
             <el-icon class="stat-icon exams"><Document /></el-icon>
             <div class="stat-info">
               <h3 class="stat-value">{{ stats.exams }}</h3>
-              <p class="stat-label">待考试</p>
+              <p class="stat-label">{{ isStudent ? '待考试' : '考试安排' }}</p>
             </div>
           </div>
         </el-card>
@@ -43,8 +43,11 @@
           <div class="stat-content">
             <el-icon class="stat-icon progress"><TrendCharts /></el-icon>
             <div class="stat-info">
-              <h3 class="stat-value">{{ stats.progress }}%</h3>
-              <p class="stat-label">总体进度</p>
+              <h3 class="stat-value">
+                {{ stats.overviewValue
+                }}<span v-if="stats.overviewSuffix">{{ stats.overviewSuffix }}</span>
+              </h3>
+              <p class="stat-label">{{ stats.overviewLabel }}</p>
             </div>
           </div>
         </el-card>
@@ -57,11 +60,11 @@
         <el-card class="neon-card">
           <template #header>
             <div class="card-header">
-              <span>最近学习</span>
+              <span>{{ courseSectionTitle }}</span>
               <router-link to="/courses" class="more-link">查看更多 →</router-link>
             </div>
           </template>
-          <el-empty v-if="!recentCourses.length" description="暂无学习记录" />
+          <el-empty v-if="!recentCourses.length" :description="courseEmptyDescription" />
           <div v-else class="course-list">
             <div
               v-for="course in recentCourses"
@@ -70,10 +73,16 @@
               @click="$router.push(`/courses/${course.id}`)"
             >
               <div class="course-info">
-                <h4>{{ course.courseName }}</h4>
-                <p class="teacher">教师：{{ course.teacherName }}</p>
+                <h4>{{ course.courseName || '未命名课程' }}</h4>
+                <p v-if="isStudent" class="teacher">教师：{{ course.teacherName || '暂未设置' }}</p>
+                <p v-else class="teacher">
+                  {{ formatCourseDateRange(course) }}
+                </p>
               </div>
-              <el-progress :percentage="course.progress" />
+              <el-progress v-if="isStudent" :percentage="normalizeProgress(course.progress)" />
+              <el-tag v-else :type="getCourseStatus(course.status).type" size="small">
+                {{ getCourseStatus(course.status).text }}
+              </el-tag>
             </div>
           </div>
         </el-card>
@@ -107,7 +116,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { getAllCourses, getCoursesByTeacher, getMyEnrollments } from '@/api/course'
 import { getHomeworkList } from '@/api/homework'
 import { getPaperPage } from '@/api/exam'
@@ -118,12 +127,47 @@ const stats = ref({
   courses: 0,
   homework: 0,
   exams: 0,
-  progress: 0,
+  overviewValue: 0,
+  overviewLabel: '总体进度',
+  overviewSuffix: '%',
 })
 
 const recentCourses = ref([])
 const todos = ref([])
 const userStore = useUserStore()
+
+const isStudent = computed(() => userStore.isStudent)
+const isAdmin = computed(() => userStore.isAdmin)
+const overviewLabel = computed(() => {
+  if (isStudent.value) return '总体进度'
+  return isAdmin.value ? '已发布课程' : '进行中课程'
+})
+const courseSectionTitle = computed(() => {
+  if (isStudent.value) return '最近学习'
+  return isAdmin.value ? '课程总览' : '我的课程'
+})
+const courseEmptyDescription = computed(() => (isStudent.value ? '暂无学习记录' : '暂无课程'))
+
+const normalizeProgress = (value) => {
+  const progress = Number(value)
+  if (!Number.isFinite(progress)) return 0
+  return Math.min(100, Math.max(0, Math.round(progress)))
+}
+
+const getCourseStatus = (status) => {
+  const statusMap = {
+    0: { text: '草稿', type: 'info' },
+    1: { text: '进行中', type: 'success' },
+    2: { text: '已结课', type: 'warning' },
+  }
+  return statusMap[status] || { text: '状态未知', type: 'info' }
+}
+
+const formatCourseDateRange = (course) => {
+  const start = course.startTime || '开课时间待定'
+  const end = course.endTime || '结课时间待定'
+  return `${start} ~ ${end}`
+}
 
 onMounted(() => {
   loadDashboardData()
@@ -131,8 +175,8 @@ onMounted(() => {
 
 const loadDashboardData = async () => {
   try {
-    const isStudent = userStore.isStudent
-    const coursePromise = isStudent
+    const student = userStore.isStudent
+    const coursePromise = student
       ? getMyEnrollments()
       : userStore.isAdmin
         ? getAllCourses()
@@ -141,18 +185,18 @@ const loadDashboardData = async () => {
       coursePromise,
       getHomeworkList({ pageNum: 1, pageSize: 100 }),
       getPaperPage({
-        status: isStudent ? 1 : undefined,
-        teacherId: !isStudent && !userStore.isAdmin ? userStore.userId : undefined,
+        status: student ? 1 : undefined,
+        teacherId: !student && !userStore.isAdmin ? userStore.userId : undefined,
         pageNum: 1,
         pageSize: 100,
       }),
     ]
-    if (isStudent) requests.push(getLearningStats())
+    if (student) requests.push(getLearningStats())
     const [courseRes, homeworkRes, examRes, learningRes] = await Promise.all(requests)
     const courses = courseRes.data || []
     const homework = homeworkRes.data?.list || []
     const exams = examRes.data?.list || []
-    const pendingHomework = isStudent
+    const pendingHomework = student
       ? homework.filter((item) => item.submitStatus === 0)
       : homework.filter((item) => (item.pendingCount || 0) > 0)
 
@@ -160,15 +204,22 @@ const loadDashboardData = async () => {
       courses: courses.length,
       homework: pendingHomework.length,
       exams: exams.length,
-      progress: isStudent ? Number(learningRes?.data?.averageProgress || 0) : 0,
+      overviewValue: student
+        ? normalizeProgress(learningRes?.data?.averageProgress)
+        : courses.filter((course) => course.status === 1).length,
+      overviewLabel: overviewLabel.value,
+      overviewSuffix: student ? '%' : '',
     }
-    recentCourses.value = courses.slice(0, 4)
+    recentCourses.value = courses.slice(0, 4).map((course) => ({
+      ...course,
+      progress: student ? normalizeProgress(course.progress) : null,
+    }))
     todos.value = [
       ...pendingHomework.slice(0, 5).map((item) => ({
         id: `homework-${item.id}`,
         type: 'warning',
         label: '作业',
-        title: item.title,
+        title: item.title || '未命名作业',
         deadline: item.deadline || '未设置截止时间',
         path: `/homework/${item.id}`,
       })),
@@ -176,14 +227,21 @@ const loadDashboardData = async () => {
         id: `exam-${item.id}`,
         type: 'danger',
         label: '考试',
-        title: item.paperName,
+        title: item.paperName || '未命名考试',
         deadline: item.startTime || '待安排',
-        path: isStudent ? `/exam/take/${item.id}` : `/exam/paper/detail/${item.id}`,
+        path: student ? `/exam/take/${item.id}` : `/exam/paper/detail/${item.id}`,
       })),
     ]
   } catch (error) {
     console.error('Load dashboard data failed:', error)
-    stats.value = { courses: 0, homework: 0, exams: 0, progress: 0 }
+    stats.value = {
+      courses: 0,
+      homework: 0,
+      exams: 0,
+      overviewValue: 0,
+      overviewLabel: overviewLabel.value,
+      overviewSuffix: isStudent.value ? '%' : '',
+    }
     recentCourses.value = []
     todos.value = []
   }

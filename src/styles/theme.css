@@ -26,6 +26,89 @@
   box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
 }
 
+/* 日期/时间选择器弹层挂载在 body 下，不能依赖页面组件的 scoped 样式。
+ * 明确设置面板底部按钮的背景和文字颜色，避免“取消/确定”与浅色背景融在一起。 */
+.el-picker-panel,
+.el-date-picker,
+.el-time-panel {
+  background: rgba(6, 16, 34, 0.98) !important;
+  color: #e8f6ff !important;
+  border: 1px solid rgba(0, 229, 255, 0.35) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55) !important;
+}
+
+.el-picker-panel__content,
+.el-picker-panel__footer,
+.el-date-picker__header,
+.el-time-panel__content {
+  background: transparent !important;
+  color: #e8f6ff !important;
+}
+
+.el-picker-panel__footer,
+.el-time-panel__footer {
+  border-top-color: rgba(0, 229, 255, 0.2) !important;
+}
+
+.el-picker-panel__footer .el-button,
+.el-time-panel__footer .el-button {
+  min-width: 52px;
+  background: rgba(8, 20, 40, 0.95) !important;
+  border: 1px solid rgba(0, 229, 255, 0.55) !important;
+  color: #d9f6ff !important;
+  --el-button-text-color: #d9f6ff;
+  --el-button-text-color-regular: #d9f6ff;
+  --el-button-bg-color: rgba(8, 20, 40, 0.95);
+  --el-button-border-color: rgba(0, 229, 255, 0.55);
+}
+
+.el-picker-panel__footer .el-button.is-text,
+.el-time-panel__footer .el-button.is-text {
+  background: rgba(8, 20, 40, 0.95) !important;
+  color: #bfefff !important;
+}
+
+.el-picker-panel__footer .el-button--primary,
+.el-time-panel__footer .el-button--primary {
+  background: linear-gradient(135deg, rgba(0, 190, 230, 0.95), rgba(0, 115, 220, 0.95)) !important;
+  border-color: rgba(0, 229, 255, 0.95) !important;
+  color: #ffffff !important;
+  --el-button-text-color: #ffffff;
+  --el-button-bg-color: rgba(0, 160, 220, 0.95);
+  --el-button-border-color: rgba(0, 229, 255, 0.95);
+}
+
+.el-picker-panel__footer .el-button:hover,
+.el-time-panel__footer .el-button:hover {
+  background: rgba(0, 229, 255, 0.22) !important;
+  border-color: rgba(0, 229, 255, 0.95) !important;
+  color: #ffffff !important;
+}
+
+.el-picker-panel__footer .el-button--primary:hover,
+.el-time-panel__footer .el-button--primary:hover {
+  background: linear-gradient(135deg, rgba(0, 225, 245, 1), rgba(0, 145, 245, 1)) !important;
+}
+
+.el-date-picker .el-input__wrapper,
+.el-time-panel .el-input__wrapper {
+  background: rgba(8, 20, 40, 0.9) !important;
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.3) inset !important;
+}
+
+.el-date-picker .el-input__inner,
+.el-time-panel .el-input__inner {
+  color: #e8f6ff !important;
+}
+
+.el-picker-panel__icon-btn,
+.el-date-picker__header-label,
+.el-date-table th,
+.el-date-table td,
+.el-time-panel__btn {
+  color: #cfe9ff !important;
+}
+
 /* 科技风格：退出登录提示框（MessageBox） */
 .el-overlay-message-box {
   backdrop-filter: blur(6px);
