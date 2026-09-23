@@ -86,31 +86,34 @@
           </el-table-column>
           <el-table-column label="操作" width="250" fixed="right">
             <template #default="{ row }">
-              <el-button type="primary" size="small" @click="handleView(row)">查看</el-button>
-              <el-button
-                v-if="row.status === 2"
-                type="success"
-                size="small"
-                @click="handleCorrect(row)"
-              >
-                批改
-              </el-button>
-              <el-button
-                v-if="row.status === 3 || row.status === 5"
-                type="warning"
-                link
-                @click="openRetake(row)"
-              >
-                {{ row.status === 5 ? '调整补考' : '安排补考' }}
-              </el-button>
-              <el-button
-                v-if="(row.attemptNo || 1) > 1"
-                type="info"
-                link
-                @click="openAttemptHistory(row)"
-              >
-                历史
-              </el-button>
+              <div class="record-actions">
+                <el-button type="primary" size="small" @click="handleView(row)">查看</el-button>
+                <el-button
+                  v-if="row.status === 2"
+                  type="success"
+                  size="small"
+                  @click="handleCorrect(row)"
+                >
+                  批改
+                </el-button>
+                <el-button
+                  v-if="row.status === 3 || row.status === 5"
+                  type="warning"
+                  link
+                  @click="openRetake(row)"
+                >
+                  {{ row.status === 5 ? '调整补考' : '安排补考' }}
+                </el-button>
+                <el-button
+                  v-if="(row.attemptNo || 1) > 1"
+                  type="info"
+                  size="small"
+                  :icon="Clock"
+                  @click="openAttemptHistory(row)"
+                >
+                  历史
+                </el-button>
+              </div>
             </template>
           </el-table-column>
         </el-table>
@@ -163,32 +166,35 @@
               <el-tag v-else type="success">已批改</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="200">
+          <el-table-column label="操作" width="240">
             <template #default="{ row }">
-              <el-button type="primary" size="small" @click="handleView(row)">查看</el-button>
-              <el-button
-                v-if="row.status === 1 || row.status === 4 || row.status === 5"
-                type="success"
-                size="small"
-                :disabled="row.status === 5 && isDeadlineExpired(row.retakeDeadline)"
-                @click="handleResume(row)"
-              >
-                {{
-                  row.status === 5
-                    ? isDeadlineExpired(row.retakeDeadline)
-                      ? '补考已过期'
-                      : '开始补考'
-                    : '继续考试'
-                }}
-              </el-button>
-              <el-button
-                v-if="(row.attemptNo || 1) > 1"
-                type="info"
-                link
-                @click="openAttemptHistory(row)"
-              >
-                历史
-              </el-button>
+              <div class="record-actions">
+                <el-button type="primary" size="small" @click="handleView(row)">查看</el-button>
+                <el-button
+                  v-if="row.status === 1 || row.status === 4 || row.status === 5"
+                  type="success"
+                  size="small"
+                  :disabled="row.status === 5 && isDeadlineExpired(row.retakeDeadline)"
+                  @click="handleResume(row)"
+                >
+                  {{
+                    row.status === 5
+                      ? isDeadlineExpired(row.retakeDeadline)
+                        ? '补考已过期'
+                        : '开始补考'
+                      : '继续考试'
+                  }}
+                </el-button>
+                <el-button
+                  v-if="(row.attemptNo || 1) > 1"
+                  type="info"
+                  size="small"
+                  :icon="Clock"
+                  @click="openAttemptHistory(row)"
+                >
+                  历史
+                </el-button>
+              </div>
             </template>
           </el-table-column>
         </el-table>
@@ -396,7 +402,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
-import { Search, Refresh } from '@element-plus/icons-vue'
+import { Clock, Search, Refresh } from '@element-plus/icons-vue'
 import AiAnalyzer from '@/components/AiAnalyzer.vue'
 import { getCourseList } from '@/api/course'
 import {
@@ -729,6 +735,17 @@ const getAllOptionsList = (optionsStr) => {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+
+.record-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.record-actions :deep(.el-button + .el-button) {
+  margin-left: 0;
 }
 
 .answer-item .question-content {
