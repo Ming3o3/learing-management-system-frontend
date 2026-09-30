@@ -22,7 +22,7 @@
         </el-table-column>
         <el-table-column prop="fullScore" label="总分" width="100" />
         <el-table-column prop="createTime" label="记录时间" width="180" />
-        <el-table-column label="操作" width="270">
+        <el-table-column label="操作" width="340">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="handleView(row)"
               >查看详情</el-button
@@ -44,6 +44,15 @@
               @click="openAppeal(row)"
             >
               申请复核
+            </el-button>
+            <el-button
+              v-if="row.scoreType === 2 && row.relatedId"
+              type="success"
+              link
+              size="small"
+              @click="handleVerify(row)"
+            >
+              成绩验真
             </el-button>
           </template>
         </el-table-column>
@@ -184,6 +193,13 @@ const openBusinessDetail = (score) => {
 
 const handleHistory = (row) => {
   historyDialogRef.value?.open(row)
+}
+
+const handleVerify = (row) => {
+  router.push({
+    name: 'VerifyGrade',
+    query: { userId: row.studentId, relatedId: row.relatedId },
+  })
 }
 
 const openAppeal = (row) => {

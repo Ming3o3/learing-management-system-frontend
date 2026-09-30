@@ -26,6 +26,59 @@
   box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
 }
 
+/* 统一深色主题主按钮：使用深色高饱和背景，避免浅蓝背景与白色文字混在一起。 */
+.el-button--primary {
+  --el-button-bg-color: #087ca5;
+  --el-button-border-color: #35d5f2;
+  --el-button-text-color: #ffffff;
+  --el-button-hover-bg-color: #0a9bc4;
+  --el-button-hover-border-color: #75eaff;
+  --el-button-hover-text-color: #ffffff;
+  --el-button-active-bg-color: #066b8f;
+  --el-button-active-border-color: #35d5f2;
+  --el-button-active-text-color: #ffffff;
+  background: #087ca5 !important;
+  border-color: #35d5f2 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  text-shadow: 0 1px 1px rgba(0, 20, 35, 0.45);
+}
+
+.el-button--primary:hover,
+.el-button--primary:focus-visible {
+  background: #0a9bc4 !important;
+  border-color: #75eaff !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.35);
+}
+
+.el-button--primary:active {
+  background: #066b8f !important;
+  border-color: #35d5f2 !important;
+}
+
+.el-button--primary.is-disabled,
+.el-button--primary.is-disabled:hover,
+.el-button--primary.is-disabled:focus {
+  background: #314b60 !important;
+  border-color: #60788a !important;
+  color: #aebdc7 !important;
+  box-shadow: none !important;
+  text-shadow: none;
+}
+
+/* 文字链接按钮也保留足够对比度，避免在深色背景中变成低亮度青色。 */
+.el-button.is-link {
+  color: #bff5ff;
+  font-weight: 600;
+}
+
+.el-button.is-link:hover,
+.el-button.is-link:focus-visible {
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.55);
+}
+
 /* 日期/时间选择器弹层挂载在 body 下，不能依赖页面组件的 scoped 样式。
  * 明确设置面板底部按钮的背景和文字颜色，避免“取消/确定”与浅色背景融在一起。 */
 .el-picker-panel,

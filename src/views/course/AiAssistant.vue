@@ -603,6 +603,11 @@ async function handlePath() {
 
 .action-btn {
   align-self: flex-start;
+  min-width: 110px;
+  min-height: 40px;
+  padding: 0 18px;
+  font-size: 14px;
+  letter-spacing: 0.3px;
 }
 
 /* 结果区域 */
